@@ -1,33 +1,89 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { toast } from "../ui/toast";
+import { useRouter } from "next/navigation";
+import { signUp } from "@/lib/auth-client";
+import { SignUpEmailOptions } from "../Type/type";
 
 export default function SignUpForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConformPassword, setShowConformPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [eror, setError] = useState<string | null>(null);
-    const [passwordMismatch, setPasswordMismatch] = useState(false)
+    const [passwordMismatch, setPasswordMismatch] = useState(false);
+    const [profileImage, setProfileImage] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const router = useRouter();
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    useEffect(() => {
+        return () => {
+            if (imagePreview) URL.revokeObjectURL(imagePreview);
+        };
+    }, [imagePreview]);
+
+    // Image functionlity
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.currentTarget.files?.[0];
+        if (!file) return;
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+            toast.add({ title: "Choose a JPG, PNG or WEBP image." });
+            e.currentTarget.value = "";
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            toast.add({ title: "Image must be 5 MB or smaller." });
+            e.currentTarget.value = "";
+            return;
+        }
+        setImagePreview(URL.createObjectURL(file));
+        setProfileImage(file);
+    };
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
-
         const formData = new FormData(e.currentTarget);
         const fullName = String(formData.get("fullName") ?? "").trim();
         const email = String(formData.get("email") ?? "").trim();
+        const image = profileImage;
         const password = String(formData.get("password") ?? "");
         const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
-        if(password !== confirmPassword){
+        if (password !== confirmPassword) {
             setPasswordMismatch(true);
-            return
+            return;
         }
 
-        const payload = { fullName, email, password, confirmPassword };
+        const payload = { fullName, email, password, image, confirmPassword };
         console.log("Sign up attempt:", payload);
-        // TODO: connect Better Auth later
+
+        setIsLoading(true);
+        try {
+            const options: SignUpEmailOptions = {
+                name: fullName,
+                email: email, // required, The email address of the user.
+                password: password, // required, The password of the user. It should be at least 8 characters long and max 128 by default.
+                image: imagePreview || undefined,
+                callbackURL: "/", // An optional URL to redirect to after the user signs up.
+            };
+            const { data, error } = await signUp.email(options);
+            if (error) {
+                return setError(error.message ?? "Could not create your account.");
+            }
+            toast.add({
+                title: `Hello ${data.user?.name}, Account created`,
+                description: "Your account has been created successfully.",
+            });
+            router.push("/")
+            console.log({ data, error });
+            //   console.log("Sign up submitted:", { ...payload, password: "[hidden]" });
+        } catch {
+            setError("Something went wrong. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -72,49 +128,43 @@ export default function SignUpForm() {
                         </span>
                         <span className="h-px flex-1 bg-[#E8DED3]" />
                     </div>
-                    
+
                     {/* add photo */}
                     <div className="rounded-2xl border border-[#EFE6DC] bg-white p-5 shadow-[0_1px_2px_rgba(43,33,28,0.04)]">
                         <div className="flex items-start gap-5">
                             {/* Avatar */}
                             <div className="relative shrink-0">
-                                <button
-                                    type="button"
-                                    className="group relative grid h-24 w-24 place-items-center overflow-hidden rounded-full border border-dashed border-[#D8C7B6] bg-linear-to-b from-[#FCFAF7] to-[#F6F0E9] text-[#B5A79A] outline-none transition-colors hover:border-[#5B2233]/50 focus-visible:ring-2 focus-visible:ring-[#5B2233]/30 focus-visible:ring-offset-2"
+                                <label
+                                    htmlFor="profile-image"
+                                    className="group relative grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-full border border-dashed border-[#D8C7B6] bg-linear-to-b from-[#FCFAF7] to-[#F6F0E9] text-[#B5A79A] outline-none transition-colors hover:border-[#5B2233]/50 focus-within:ring-2 focus-within:ring-[#5B2233]/30 focus-within:ring-offset-2"
                                 >
-                                    <svg
-                                        width="30"
-                                        height="30"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.4"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <rect x="3" y="5" width="18" height="14" rx="3" />
-                                        <circle cx="12" cy="12" r="3.2" />
-                                        <path d="M8.2 5 9.3 3.2h5.4L15.8 5" />
-                                    </svg>
+                                    {imagePreview ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={imagePreview} alt="Profile preview" className="h-full w-full object-cover" />
+                                    ) : (
+                                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="3" y="5" width="18" height="14" rx="3" />
+                                            <circle cx="12" cy="12" r="3.2" />
+                                            <path d="M8.2 5 9.3 3.2h5.4L15.8 5" />
+                                        </svg>
+                                    )}
 
-                                    {/* Hover veil */}
-                                    <span className="absolute inset-0 grid place-items-center rounded-full bg-[#2B211C]/55 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
-                                        <svg
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="#FCFAF7"
-                                            strokeWidth="1.6"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        >
+                                    <span className="absolute inset-0 grid place-items-center rounded-full bg-[#2B211C]/55 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FCFAF7" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                                             <rect x="3" y="5" width="18" height="14" rx="3" />
                                             <circle cx="12" cy="12" r="3.2" />
                                             <path d="M8.2 5 9.3 3.2h5.4L15.8 5" />
                                         </svg>
                                     </span>
-                                </button>
+                                </label>
+                                <input
+                                    id="profile-image"
+                                    name="image"
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    className="sr-only"
+                                    onChange={handleImageChange}
+                                />
 
                                 {/* Corner badge */}
                                 <span className="pointer-events-none absolute -bottom-0.5 -right-0.5 grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-[#5B2233] text-white shadow-sm">
@@ -151,6 +201,7 @@ export default function SignUpForm() {
                                 <div className="mt-4 flex flex-wrap items-center gap-2">
                                     <button
                                         type="button"
+                                        onClick={() => document.getElementById("profile-image")?.click()}
                                         className="inline-flex items-center gap-2 rounded-full bg-[#5B2233] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white shadow-[0_1px_2px_rgba(43,33,28,0.2)] transition hover:bg-[#481A28] active:scale-[0.98]"
                                     >
                                         <svg
@@ -167,7 +218,7 @@ export default function SignUpForm() {
                                             <path d="m6 10 6-6 6 6" />
                                             <path d="M4 20h16" />
                                         </svg>
-                                        Choose image
+                                        {profileImage ? "Change image" : "Choose image"}
                                     </button>
                                 </div>
                             </div>
@@ -175,24 +226,24 @@ export default function SignUpForm() {
                     </div>
 
                     {/* full name */}
-                        <label className="block text-[13px] font-semibold text-[#2B211C]">
-                            Full name
-                        </label>
-                        <div className="relative mt-2.5">
-                            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#B5A79A]">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                                    <circle cx="12" cy="8" r="4" />
-                                    <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
-                                </svg>
-                            </span>
-                            <input
-                                name="fullName"
-                                type="text"
-                                required
-                                placeholder="Ava Morgan"
-                                className="w-full rounded-xl border border-[#E8DED3] bg-[#FCFAF7] py-3.5 pl-12 pr-4 text-[15px] text-[#2B211C] outline-none transition placeholder:text-[#B5A79A] focus:border-[#5B2233] focus:bg-white focus:ring-4 focus:ring-[#5B2233]/10"
-                            />
-                        </div>
+                    <label className="block text-[13px] font-semibold text-[#2B211C]">
+                        Full name
+                    </label>
+                    <div className="relative mt-2.5">
+                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#B5A79A]">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                                <circle cx="12" cy="8" r="4" />
+                                <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
+                            </svg>
+                        </span>
+                        <input
+                            name="fullName"
+                            type="text"
+                            required
+                            placeholder="Ava Morgan"
+                            className="w-full rounded-xl border border-[#E8DED3] bg-[#FCFAF7] py-3.5 pl-12 pr-4 text-[15px] text-[#2B211C] outline-none transition placeholder:text-[#B5A79A] focus:border-[#5B2233] focus:bg-white focus:ring-4 focus:ring-[#5B2233]/10"
+                        />
+                    </div>
 
                     {/* email */}
                     <label className="mt-6 block text-[13px] font-semibold text-[#2B211C]">
@@ -271,7 +322,7 @@ export default function SignUpForm() {
                             placeholder="Repeat your password"
                             className="w-full rounded-xl border border-[#E8DED3] bg-[#FCFAF7] py-3.5 pl-12 pr-4 text-[15px] text-[#2B211C] outline-none transition placeholder:text-[#B5A79A] focus:border-[#5B2233] focus:bg-white focus:ring-4 focus:ring-[#5B2233]/10"
                         />
-                        
+
                         <button
                             type="button"
                             onClick={() => setShowConformPassword(!showConformPassword)}
@@ -289,12 +340,28 @@ export default function SignUpForm() {
                         </p>
                     )}
 
+                    <label className="mt-6 flex cursor-pointer items-start gap-2.5 text-[12px] leading-relaxed text-[#7C6B60]">
+                        <input
+                            name="termsAccepted"
+                            type="checkbox"
+                            required
+                            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#5B2233]"
+                        />
+                        <span>
+                            I agree to the <a href="/terms" className="font-semibold text-[#5B2233] underline underline-offset-2">Terms of Service</a>
+                            {" and "}
+                            <a href="/privacy" className="font-semibold text-[#5B2233] underline underline-offset-2">Privacy Policy</a>.
+                        </span>
+                    </label>
+                    {eror && <p className="mt-3 text-sm text-red-600" role="alert">{eror}</p>}
+
                     {/* submit */}
                     <button
                         type="submit"
-                        className="group mt-8 flex w-full items-center justify-center gap-3 rounded-xl bg-[#5B2233] py-4 text-[15px] font-semibold text-[#F6F0E9] transition hover:bg-[#712B41]"
+                        disabled={isLoading}
+                        className="group mt-8 flex w-full items-center justify-center gap-3 rounded-xl bg-[#5B2233] py-4 text-[15px] font-semibold text-[#F6F0E9] transition hover:bg-[#712B41] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        Create account
+                        {isLoading ? "Creating account…" : "Create account"}
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="transition-transform group-hover:translate-x-1">
                             <path d="M5 12h14M13 6l6 6-6 6" />
                         </svg>

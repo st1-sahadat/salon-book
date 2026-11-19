@@ -1,19 +1,45 @@
 "use client";
 
+import { signIn } from "@/lib/auth-client";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { toast } from "../ui/toast";
+import { useRouter } from "next/navigation";
 
 export default function SignInForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const email = form.get("email");
-    const password = form.get("password");
-
-    console.log("Sign in attempt:", { email, password });
-    // TODO: connect Better Auth later
+  const handleSubmit = async(e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const payload = {
+      email: String(formData.get("email") ?? "").trim(),
+      password: String(formData.get("password") ?? ""),
+      rememberMe: formData.get("rememberMe") === "on",
+    }
+    // console.log("Sign in attempt:", { payload });
+    setIsLoading(true);
+    try {
+      const { data, error } = await signIn.email(payload);
+      if (error) return setError(error.message ?? "Invalid email or password.");
+      console.log({ data, error });
+      if (data?.user) {
+        toast.add({
+          title: `Hello ${data.user?.name}, welcome back!`,
+          description: "You have been signed in successfully.",
+        });
+        router.push("/");
+      }
+      console.log("Sign in submitted:", { ...payload, password: "[hidden]" });
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -36,6 +62,28 @@ export default function SignInForm() {
           onSubmit={handleSubmit}
           className="mt-9 w-full max-w-125 rounded-[22px] border border-[#E8DED3] bg-white p-7 shadow-[0_30px_70px_-45px_rgba(43,33,28,0.5)] sm:p-9"
         >
+          {/* error show */}
+          {error && (
+            <div
+              role="alert"
+              className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className="mt-0.5 shrink-0"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v6M12 17h.01" />
+              </svg>
+              <p>{error}</p>
+            </div>
+          )}
           {/* email */}
           <label className="block text-[13px] font-semibold text-[#2B211C]">
             Email address
@@ -51,8 +99,9 @@ export default function SignInForm() {
               name="email"
               type="email"
               required
+              disabled={isLoading}
               placeholder="you@example.com"
-              className="w-full rounded-xl border border-[#E8DED3] bg-[#FCFAF7] py-3.5 pl-12 pr-4 text-[15px] text-[#2B211C] outline-none transition placeholder:text-[#B5A79A] focus:border-[#5B2233] focus:bg-white focus:ring-4 focus:ring-[#5B2233]/10"
+              className="w-full rounded-xl border border-[#E8DED3] bg-[#FCFAF7] py-3.5 pl-12 pr-4 text-[15px] text-[#2B211C] outline-none transition placeholder:text-[#B5A79A] focus:border-[#5B2233] focus:bg-white focus:ring-4 focus:ring-[#5B2233]/10 disabled:cursor-not-allowed disabled:opacity-60"
             />
           </div>
 
@@ -71,8 +120,9 @@ export default function SignInForm() {
               name="password"
               type={showPassword ? "text" : "password"}
               required
+              disabled={isLoading}
               placeholder="Enter your password"
-              className="w-full rounded-xl border border-[#E8DED3] bg-[#FCFAF7] py-3.5 pl-12 pr-12 text-[15px] text-[#2B211C] outline-none transition placeholder:text-[#B5A79A] focus:border-[#5B2233] focus:bg-white focus:ring-4 focus:ring-[#5B2233]/10"
+              className="w-full rounded-xl border border-[#E8DED3] bg-[#FCFAF7] py-3.5 pl-12 pr-12 text-[15px] text-[#2B211C] outline-none transition placeholder:text-[#B5A79A] focus:border-[#5B2233] focus:bg-white focus:ring-4 focus:ring-[#5B2233]/10 disabled:cursor-not-allowed disabled:opacity-60"
             />
             <button
               type="button"
@@ -86,10 +136,31 @@ export default function SignInForm() {
             </button>
           </div>
 
+          {/* keep me signed in */}
+          <label className="mt-6 flex cursor-pointer items-start gap-3">
+            <input
+              name="rememberMe"
+              type="checkbox"
+              checked={rememberMe}
+              disabled={isLoading}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#5B2233]"
+            />
+            <span>
+              <span className="block text-[13px] font-semibold text-[#2B211C]">
+                Keep me signed in
+              </span>
+              <span className="mt-1 block text-[12px] leading-relaxed text-[#7C6B60]">
+                Recommended on trusted devices. <span className="underline underline-offset-2">Why?</span>
+              </span>
+            </span>
+          </label>
+
           {/* submit */}
           <button
             type="submit"
-            className="group mt-8 flex w-full items-center justify-center gap-3 rounded-xl bg-[#5B2233] py-4 text-[15px] font-semibold text-[#F6F0E9] transition hover:bg-[#712B41]"
+            disabled={!rememberMe}
+            className="group mt-8 flex w-full items-center justify-center gap-3 rounded-xl bg-[#5B2233] py-4 text-[15px] font-semibold text-[#F6F0E9] transition hover:bg-[#712B41] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#5B2233]"
           >
             Sign in
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="transition-transform group-hover:translate-x-1">

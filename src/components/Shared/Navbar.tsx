@@ -1,19 +1,9 @@
 "use client";
+import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-
-export type NavUser = {
-  name: string;
-  email?: string;
-  image?: string;
-};
-
-type NavbarProps = {
-  user?: NavUser | null;
-  onSignOut?: () => void;
-};
 
 const LINKS = [
   { href: "/", label: "Home" },
@@ -24,13 +14,20 @@ const LINKS = [
 
 const EASE = "cubic-bezier(0.2,0.8,0.2,1)";
 
-export default function Navbar({ user = null, onSignOut }: NavbarProps) {
+export default function Navbar() {
+  const { data: session, error, isPending } = authClient.useSession();
+  const userData = session?.user;
+  const handleSignOut = () => {
+    authClient.signOut();
+  };
   const pathname = usePathname();          // current URL path (e.g. "/services")
   const [scrolled, setScrolled] = useState(false);   // has user scrolled down?
   const [menuOpen, setMenuOpen] = useState(false);   // is mobile menu open?
   const [dropdownOpen, setDropdownOpen] = useState(false); // is profile dropdown open?
   const profileRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
+
+  console.log(isPending, userData, error);
 
   // check immediately when page loads
   useEffect(() => {
@@ -78,13 +75,13 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
   //highlight current page link
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
-  
+
   //sliding underline on hover
   const showIndicator = (event: React.MouseEvent<HTMLAnchorElement>) => {
     const el = event.currentTarget; // the link being hovered
     const parent = el.parentElement; // its container
     const indicator = indicatorRef.current; // the underline bar
-    if (!parent || !indicator) return; 
+    if (!parent || !indicator) return;
     const box = el.getBoundingClientRect(); // link position/size
     const parentBox = parent.getBoundingClientRect(); // container position
     indicator.style.width = `${box.width}px`; // match link width
@@ -96,7 +93,7 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
     if (indicatorRef.current) indicatorRef.current.style.opacity = "0"; //hide the bar
   };
 
-  const initials = (user?.name ?? "")
+  const initials = (userData?.name ?? "")
     .trim()
     .split(/\s+/)
     .filter(Boolean)
@@ -104,6 +101,53 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
+  //  Skeleton Screen
+  if (isPending) {
+    return (
+      <header
+        className="top-0 left-0 z-100 w-full border-b border-cream/15 bg-forest/[0.94] backdrop-blur-lg"
+        role="status"
+        aria-label="Loading navigation"
+        style={{ backdropFilter: "blur(16px) saturate(140%)" }}
+      >
+        <div className="mx-auto flex max-w-7xl items-center gap-8 px-5 py-5 lg:gap-10 lg:px-8 lg:py-6">
+
+          {/* 1. Logo Skeleton */}
+          <div className="flex shrink-0 items-center gap-3">
+            {/* Logo Circle */}
+            <div className="h-11 w-11 animate-pulse rounded-full border-[1.5px] border-brass/40 bg-brass/[0.08]" />
+            <div>
+              {/* "SalonBook" Text */}
+              <div className="h-6 w-32 animate-pulse rounded-sm bg-cream/[0.12]" />
+              {/* "HAIR • SKIN • SPA" Text */}
+              <div className="mt-1.5 h-2 w-24 animate-pulse rounded-sm bg-cream/[0.08] sm:block" />
+            </div>
+          </div>
+
+          {/* 2. Navigation Links Skeleton */}
+          <div className="ml-2.5 hidden items-center gap-8 lg:flex">
+            {[44, 76, 82, 53].map((width, index) => (
+              <div
+                key={index}
+                className="h-7 animate-pulse rounded-full bg-cream/[0.08]"
+                style={{ width: `${width}px` }}
+              />
+            ))}
+          </div>
+
+          {/* 3. Auth Buttons Skeleton (Sign In / Sign Up) */}
+          <div className="ml-auto flex items-center gap-5">
+            {/* Sign In Text */}
+            <div className="hidden h-3.5 w-12 animate-pulse rounded-sm bg-cream/[0.10] sm:block" />
+            {/* Sign Up Button */}
+            <div className="hidden h-11 w-28 animate-pulse rounded-sm bg-brass/[0.35] sm:block" />
+          </div>
+
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header
@@ -149,7 +193,7 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
           aria-label="Primary"
           onMouseLeave={hideIndicator}
         >
-          {LINKS.map((link) => (
+          {LINKS.filter((link) => userData || (link.href !== "/why-salonbook" && link.href !== "/visit")).map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -172,7 +216,7 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
 
         {/* -------- actions -------- */}
         <div className="ml-auto flex items-center gap-3 lg:gap-5.5">
-          {!user && (
+          {!userData && (
             <>
               <Link
                 href="/sign-in"
@@ -182,18 +226,18 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
                 <span className="absolute bottom-0 left-0 h-px w-full origin-right scale-x-0 bg-brass transition-transform duration-300 group-hover:origin-left group-hover:scale-x-100" />
               </Link>
               <Link
-                href="/services"
+                href="/sign-up"
                 className="hidden items-center gap-2.5 bg-brass px-6.5 py-3.75 font-mono text-[11.5px] font-medium uppercase tracking-[0.19em] text-brass-ink transition-all duration-300 hover:-translate-y-0.5 hover:bg-brass-soft hover:tracking-[0.26em] sm:inline-flex"
                 style={{ clipPath: "polygon(0 0, calc(100% - 13px) 0, 100% 13px, 100% 100%, 13px 100%, 0 calc(100% - 13px))" }}
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-brass-ink transition-transform duration-300 group-hover:scale-[1.9]" />
-                Book now
+                SIGN UP
               </Link>
             </>
           )}
 
           {/* profile */}
-          {user && (
+          {userData && (
             <div ref={profileRef} className="relative">
               <button
                 type="button"
@@ -205,9 +249,9 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
                   : "border-cream/15 bg-cream/[0.06] hover:border-brass/55 hover:bg-brass/[0.10]"
                   }`}
               >
-                {user.image ? (
+                {userData.image ? (
                   <Image
-                    src={user.image}
+                    src={userData.image}
                     alt=""
                     width={35}
                     height={35}
@@ -219,7 +263,7 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
                   </span>
                 )}
                 <span className="hidden font-mono text-[11.5px] uppercase tracking-[0.14em] text-cream sm:block">
-                  {user.name.split(" ")[0]}
+                  {userData.name.split(" ")[0]}
                 </span>
                 <svg
                   viewBox="0 0 24 24"
@@ -241,10 +285,10 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
                 style={{ clipPath: "polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))" }}
               >
                 <div className="mb-2 border-b border-cream/15 px-3.5 pb-3.5 pt-3">
-                  <p className="font-display text-[18px] tracking-[-0.01em] text-cream">{user.name}</p>
-                  {user.email && (
+                  <p className="font-display text-[18px] tracking-[-0.01em] text-cream">{userData.name}</p>
+                  {userData.email && (
                     <p className="mt-1.25 break-all font-mono text-[10px] tracking-[0.08em] text-cream-dim">
-                      {user.email}
+                      {userData.email}
                     </p>
                   )}
                 </div>
@@ -267,7 +311,7 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
                   role="menuitem"
                   onClick={() => {
                     setDropdownOpen(false);
-                    onSignOut?.();
+                    handleSignOut?.();
                   }}
                   className="flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-3 text-left font-mono text-[11px] uppercase tracking-[0.17em] text-cream-dim transition-all duration-300 hover:bg-[rgba(196,74,46,0.16)] hover:pl-5 hover:text-[#E8927A]"
                 >
@@ -322,7 +366,7 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
             </Link>
           ))}
 
-          {!user ? (
+          {!userData ? (
             <>
               <Link
                 href="/sign-in"
@@ -355,7 +399,7 @@ export default function Navbar({ user = null, onSignOut }: NavbarProps) {
                 type="button"
                 onClick={() => {
                   setMenuOpen(false);
-                  onSignOut?.();
+                  handleSignOut?.();
                 }}
                 className={`flex cursor-pointer items-baseline justify-between border-b border-cream/15 py-3.75 text-left font-display text-[clamp(30px,8vw,44px)] tracking-[-0.02em] text-cream ${menuOpen ? "animate-navItemIn opacity-0" : "opacity-0"}`}
                 style={{ animationDelay: "0.54s" }}
