@@ -1,23 +1,9 @@
+import Banner from "@/components/Homepage/Banner";
 
 export default function Home() {
   return (
     <div>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
-      <h1>HomePage</h1>
+      <Banner />
     </div>
   );
 }

@@ -290,11 +290,11 @@ export default function Navbar() {
                   <p className="font-display text-[18px] tracking-[-0.01em] text-cream">
                     {userData.name}
                   </p>
-                  {userData.email && (
+                  {/* {userData.email && (
                     <p className="mt-1.25 break-all font-mono text-[10px] tracking-[0.08em] text-cream-dim">
                       {userData.email}
                     </p>
-                  )}
+                  )} */}
                 </div>
                 <Link
                   href="/dashboard"

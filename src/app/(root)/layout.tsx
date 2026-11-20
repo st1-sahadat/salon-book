@@ -1,6 +1,6 @@
 
-import FooterFunctionality from '@/components/Shared/FooterFunctionality';
-import Navbar from '@/components/Shared/Navbar';
+import FooterFunctionality from '@/components/Homepage/FooterFunctionality';
+import Navbar from '@/components/Homepage/Navbar';
 import type { ReactNode } from 'react';
 
 

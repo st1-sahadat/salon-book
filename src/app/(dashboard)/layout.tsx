@@ -1,7 +1,7 @@
 
 import { cookies, headers } from "next/headers";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+import DashboardHeader from "@/components/Dashboard/DashboardHeader";
+import DashboardSidebar from "@/components/Dashboard/DashboardSidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { auth } from "@/lib/auth";
