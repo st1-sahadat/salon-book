@@ -1,4 +1,3 @@
-'use client';
 
 import FooterFunctionality from '@/components/Shared/FooterFunctionality';
 import Navbar from '@/components/Shared/Navbar';

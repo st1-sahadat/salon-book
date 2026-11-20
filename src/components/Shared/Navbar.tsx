@@ -277,17 +277,19 @@ export default function Navbar() {
                   <path d="M6 9l6 6 6-6" fill="none" stroke="#D8A441" strokeWidth="2" />
                 </svg>
               </button>
-
+                {/* drop down menu */}
               <div
                 role="menu"
-                className={`absolute right-0 top-[calc(100%+16px)] w-65.5 origin-top-right border border-cream/15 bg-forest-2 p-3 shadow-dropdown transition-all duration-300 ${dropdownOpen
+                className={`absolute right-0 top-[calc(100%+20px)] w-65.5 origin-top-right border border-cream/15 bg-forest-2 p-3 shadow-dropdown transition-all duration-300 ${dropdownOpen
                   ? "visible translate-y-0 scale-100 opacity-100"
                   : "invisible -translate-y-3 scale-[0.97] opacity-0"
                   }`}
                 style={{ clipPath: "polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))" }}
               >
                 <div className="mb-2 border-b border-cream/15 px-3.5 pb-3.5 pt-3">
-                  <p className="font-display text-[18px] tracking-[-0.01em] text-cream">{userData.name}</p>
+                  <p className="font-display text-[18px] tracking-[-0.01em] text-cream">
+                    {userData.name}
+                  </p>
                   {userData.email && (
                     <p className="mt-1.25 break-all font-mono text-[10px] tracking-[0.08em] text-cream-dim">
                       {userData.email}
@@ -323,26 +325,7 @@ export default function Navbar() {
             </div>
           )}
 
-          {/* burger */}
-          <button
-            type="button"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((value) => !value)}
-            className="relative h-11.5 w-11.5 cursor-pointer border border-cream/15 lg:hidden"
-            style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))" }}
-          >
-            <span
-              className={`absolute left-3.25 top-4.75 h-[1.5px] bg-cream transition-transform duration-300 ${menuOpen ? "translate-y-[3.5px] rotate-45" : ""
-                }`}
-              style={{ width: "20px", transitionTimingFunction: EASE }}
-            />
-            <span
-              className={`absolute left-3.25 top-6.5 h-[1.5px] bg-cream transition-all duration-300 ${menuOpen ? "w-5 translate-y-[-3.5px] -rotate-45" : "w-3.25"
-                }`}
-              style={{ transitionTimingFunction: EASE }}
-            />
-          </button>
+
         </div>
       </div>
 
@@ -413,7 +396,7 @@ export default function Navbar() {
           )}
         </nav>
 
-        <div
+        {/* <div
           className={`mt-auto pt-9 ${menuOpen ? "animate-navItemIn opacity-0" : "opacity-0"}`}
           style={{ animationDelay: "0.62s" }}
         >
@@ -428,7 +411,7 @@ export default function Navbar() {
             <span className="h-1.5 w-1.5 rounded-full bg-brass-ink" />
             Book an appointment
           </Link>
-        </div>
+        </div> */}
       </div>
     </header>
   );

@@ -29,7 +29,7 @@ export default function Footer1() {
               </span>
             </div>
 
-            <p className="mt-6 max-w-[330px] text-[15px] leading-[2] text-white/70">
+            <p className="mt-6 max-w-82.5 text-[15px] leading-loose text-white/70">
               A neighbourhood studio where thoughtful craft meets unhurried care.
               Book hair, skin, nails and spa rituals with the barbers who make it personal.
             </p>
@@ -100,14 +100,14 @@ export default function Footer1() {
 
             <ul className="mt-7 space-y-5 text-[15px] leading-[1.75] text-white/75">
               <li className="flex gap-3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E3B274" strokeWidth="1.5" className="mt-1 flex-shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E3B274" strokeWidth="1.5" className="mt-1 shrink-0">
                   <path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z" />
                   <circle cx="12" cy="10" r="2.6" />
                 </svg>
                 <span>128 Madison Avenue, Suite 4,<br />New York, NY 10016</span>
               </li>
               <li className="flex gap-3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E3B274" strokeWidth="1.5" className="mt-1 flex-shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E3B274" strokeWidth="1.5" className="mt-1 shrink-0">
                   <path d="M22 16.9v2a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 3.2 2 2 0 0 1 4 1h2a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L7.1 8.9a16 16 0 0 0 6 6l1.3-1.1a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" />
                 </svg>
                 <a href="tel:+12125550198" className="transition hover:text-[#E3B274]">
@@ -115,7 +115,7 @@ export default function Footer1() {
                 </a>
               </li>
               <li className="flex gap-3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E3B274" strokeWidth="1.5" className="mt-1 flex-shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E3B274" strokeWidth="1.5" className="mt-1 shrink-0">
                   <rect x="3" y="5" width="18" height="14" rx="2" />
                   <path d="M3 7l9 6 9-6" />
                 </svg>
