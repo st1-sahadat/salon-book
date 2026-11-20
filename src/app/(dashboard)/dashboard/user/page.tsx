@@ -1,7 +1,11 @@
-import React from "react";
+import React from 'react';
 
-const UserDashboard = () => {
-  return <div>User homepage</div>;
+const UserPage = () => {
+    return (
+        <div>
+            <h2>User Page</h2>
+        </div>
+    );
 };
 
-export default UserDashboard;
+export default UserPage;

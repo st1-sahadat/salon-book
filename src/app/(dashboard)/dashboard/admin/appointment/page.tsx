@@ -1,3 +1,3 @@
 export default function AdminServicesPage() {
-  return <h2>Services</h2>;
+  return <h2>Appointment</h2>;
 }

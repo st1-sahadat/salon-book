@@ -3,17 +3,19 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Building2,
   CalendarCheck,
   CalendarDays,
   CarFront,
   ChevronsUpDown,
-  Droplets,
   House,
   LayoutDashboard,
+  LayoutGrid,
   LogOut,
   UserRound,
   Users,
+  WrenchOff,
+  ClipboardClock,
+  CreditCardPlus
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,19 +47,19 @@ import { TDashboardSidebarItem, TUser, TUserRole } from "@/types";
 const roleBasedSidebarItems = {
   user: [
     {
-      title: "Dashboard",
-      href: "/dashboard/user",
+      title: "Overview",
+      href: "/dashboard/user/overview",
       icon: LayoutDashboard,
     },
     {
-      title: "My Bookings",
-      href: "/dashboard/user/bookings",
+      title: "My Appointments",
+      href: "/dashboard/user/appointments",
       icon: CalendarCheck,
     },
     {
-      title: "Upcoming Bookings",
-      href: "/dashboard/user/bookings/upcoming",
-      icon: CalendarDays,
+      title: "Browse services",
+      href: "/dashboard/user/service",
+      icon: WrenchOff,
     },
     {
       title: "My Profile",
@@ -67,34 +69,29 @@ const roleBasedSidebarItems = {
   ],
   admin: [
     {
-      title: "Dashboard",
-      href: "/dashboard/admin",
-      icon: LayoutDashboard,
+      title: "Overview",
+      href: "/dashboard/admin/overview",
+      icon: LayoutGrid,
     },
     {
-      title: "Bookings",
-      href: "/dashboard/admin/bookings",
-      icon: CalendarCheck,
+      title: "Manage services",
+      href: "/dashboard/admin/manage-service",
+      icon: WrenchOff,
     },
     {
-      title: "Upcoming Bookings",
-      href: "/dashboard/admin/bookings/upcoming",
-      icon: CalendarDays,
+      title: "Appointment",
+      href: "/dashboard/admin/appointment",
+      icon: ClipboardClock,
     },
     {
-      title: "Users",
-      href: "/dashboard/admin/users",
+      title: "Customers",
+      href: "/dashboard/admin/customers",
       icon: Users,
     },
     {
-      title: "Branches",
-      href: "/dashboard/admin/branches",
-      icon: Building2,
-    },
-    {
-      title: "Services",
-      href: "/dashboard/admin/services",
-      icon: Droplets,
+      title: "Transactions",
+      href: "/dashboard/admin/transactions",
+      icon: CreditCardPlus,
     },
     {
       title: "My Profile",
@@ -128,13 +125,13 @@ const DashboardSidebar = ({ user }: { user: TUser | null }) => {
   };
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="bg-[#bcc2d2]">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              tooltip="PH Car Wash"
+              tooltip="Salon Book"
               render={
                 <Link
                   href={`/dashboard/${user?.role || "user"}`}
@@ -146,7 +143,7 @@ const DashboardSidebar = ({ user }: { user: TUser | null }) => {
                 <CarFront />
               </div>
               <div className="grid flex-1 text-left leading-tight">
-                <span className="truncate font-semibold">PH Car Wash</span>
+                <span className="truncate font-semibold">Salon Book</span>
                 <span className="truncate text-xs text-sidebar-foreground/70">
                   dashboard
                 </span>
@@ -169,6 +166,7 @@ const DashboardSidebar = ({ user }: { user: TUser | null }) => {
                     <SidebarMenuButton
                       tooltip={title}
                       isActive={isActivePath(pathname, href)}
+                      className="data-[active=true]:bg-[#15295e] data-[active=true]:text-[#ffc107]"
                       render={<Link href={href} onClick={closeMobile} />}
                     >
                       <Icon />
