@@ -2,7 +2,7 @@
 import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const LINKS = [
@@ -15,10 +15,12 @@ const LINKS = [
 const EASE = "cubic-bezier(0.2,0.8,0.2,1)";
 
 export default function Navbar() {
+  const router = useRouter()
   const { data: session, error, isPending } = authClient.useSession();
   const userData = session?.user;
   const handleSignOut = () => {
     authClient.signOut();
+    router.push("/sign-in")
   };
   const pathname = usePathname();          // current URL path (e.g. "/services")
   const [scrolled, setScrolled] = useState(false);   // has user scrolled down?
@@ -158,7 +160,7 @@ export default function Navbar() {
       style={{ backdropFilter: "blur(16px) saturate(140%)" }}
     >
       <div
-        className={`mx-auto flex max-w-335 items-center gap-8 px-5 transition-all duration-300 lg:gap-9.5 lg:px-8.5 ${scrolled ? "py-3.5 lg:py-3.5" : "py-5 lg:py-6"
+        className={`container mx-auto flex items-center gap-8 px-5 transition-all duration-300 lg:gap-9.5 lg:px-8.5 ${scrolled ? "py-3.5 lg:py-3.5" : "py-5 lg:py-6"
           }`}
       >
         {/* -------- brand logo -------- */}
