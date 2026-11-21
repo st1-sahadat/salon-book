@@ -16,7 +16,7 @@ const EASE = "cubic-bezier(0.2,0.8,0.2,1)";
 
 export default function Navbar() {
   const router = useRouter()
-  const { data: session, error, isPending } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const userData = session?.user;
   const handleSignOut = () => {
     authClient.signOut();
@@ -153,9 +153,9 @@ export default function Navbar() {
 
   return (
     <header
-      className={`top-0 left-0 w-full z-100 border-b border-cream/15 backdrop-blur-lg transition-all duration-300 ${scrolled
-        ? "bg-forest-deep/[0.97] shadow-nav"
-        : "bg-forest/[0.94]"
+      className={`relative top-0 left-0 z-100 w-full border-b border-cream/15 backdrop-blur-lg transition-all duration-300 ${scrolled
+        ? "bg-forest-deep/97 shadow-nav"
+        : "bg-forest/94"
         }`}
       style={{ backdropFilter: "blur(16px) saturate(140%)" }}
     >
@@ -166,7 +166,7 @@ export default function Navbar() {
         {/* -------- brand logo -------- */}
         <Link href="/" className="group flex shrink-0 items-center gap-3">
           <span
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-[1.5px] border-brass transition-all duration-500 group-hover:rotate-[-24deg] group-hover:bg-brass/[0.12]"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-[1.5px] border-brass transition-all duration-500 group-hover:rotate-[-24deg] group-hover:bg-brass/12"
             style={{ transitionTimingFunction: EASE }}
           >
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -247,8 +247,8 @@ export default function Navbar() {
                 aria-expanded={dropdownOpen}
                 onClick={() => setDropdownOpen((value) => !value)}
                 className={`flex cursor-pointer items-center gap-2.5 rounded-full border py-1.5 pl-1.5 pr-3.5 transition-colors duration-300 ${dropdownOpen
-                  ? "border-brass/55 bg-brass/[0.10]"
-                  : "border-cream/15 bg-cream/[0.06] hover:border-brass/55 hover:bg-brass/[0.10]"
+                  ? "border-brass/55 bg-brass/10"
+                  : "border-cream/15 bg-cream/6 hover:border-brass/55 hover:bg-brass/10"
                   }`}
               >
                 {userData.image ? (
@@ -280,7 +280,7 @@ export default function Navbar() {
                 {/* drop down menu */}
               <div
                 role="menu"
-                className={`absolute right-0 top-[calc(100%+20px)] w-65.5 origin-top-right border border-cream/15 bg-forest-2 p-3 shadow-dropdown transition-all duration-300 ${dropdownOpen
+                className={`absolute right-0 top-[calc(100%+20px)] z-50 w-65.5 origin-top-right border border-cream/15 bg-forest-2 p-3 shadow-dropdown transition-all duration-300 ${dropdownOpen
                   ? "visible translate-y-0 scale-100 opacity-100"
                   : "invisible -translate-y-3 scale-[0.97] opacity-0"
                   }`}
@@ -299,14 +299,14 @@ export default function Navbar() {
                 <Link
                   href="/dashboard"
                   role="menuitem"
-                  className="flex w-full items-center gap-2.5 px-3.5 py-3 font-mono text-[11px] uppercase tracking-[0.17em] text-cream-dim transition-all duration-300 hover:bg-brass/[0.13] hover:pl-5 hover:text-brass-soft"
+                  className="flex w-full items-center gap-2.5 px-3.5 py-3 font-mono text-[11px] uppercase tracking-[0.17em] text-cream-dim transition-all duration-300 hover:bg-brass/13 hover:pl-5 hover:text-brass-soft"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/dashboard/profile"
                   role="menuitem"
-                  className="flex w-full items-center gap-2.5 px-3.5 py-3 font-mono text-[11px] uppercase tracking-[0.17em] text-cream-dim transition-all duration-300 hover:bg-brass/[0.13] hover:pl-5 hover:text-brass-soft"
+                  className="flex w-full items-center gap-2.5 px-3.5 py-3 font-mono text-[11px] uppercase tracking-[0.17em] text-cream-dim transition-all duration-300 hover:bg-brass/13 hover:pl-5 hover:text-brass-soft"
                 >
                   My Profile
                 </Link>

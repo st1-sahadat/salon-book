@@ -8,10 +8,11 @@ export type SignUpEmailOptions = {
 };
 
 export interface IServices {
+    _id?: string;
     category: string;
     createdAt: string;
     description: string;
-    duration: number;
+    duration: number | string;
     image: string;
     price: number;
     serviceName: string;

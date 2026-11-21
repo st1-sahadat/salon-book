@@ -134,7 +134,7 @@ const DashboardSidebar = ({ user }: { user: TUser | null }) => {
               tooltip="Salon Book"
               render={
                 <Link
-                  href={`/dashboard/${user?.role || "user"}`}
+                  href={`/`}
                   onClick={closeMobile}
                 />
               }

@@ -28,7 +28,7 @@ const FooterFunctionality = () => {
 
       <div
         aria-label="Footer style pagination"
-        className="fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-[#22301F]/15 bg-[#F6F1E8]/95 p-1.5 shadow-[0_18px_40px_-20px_rgba(34,48,31,0.55)] backdrop-blur-md"
+        className="absolute bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-[#22301F]/15 bg-[#F6F1E8]/95 p-1.5 shadow-[0_18px_40px_-20px_rgba(34,48,31,0.55)] backdrop-blur-md"
       >
         <button type="button" onClick={previousSlide} aria-label="Previous footer style" className={arrowClass}>
           ‹
