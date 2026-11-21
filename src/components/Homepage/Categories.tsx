@@ -326,6 +326,7 @@ export default function Categories() {
                     ))}
                   </ul>
 
+
                   <span className="relative mt-4.25 inline-block pb-1.25 font-mono text-[10px] uppercase tracking-[0.22em]">
                     Explore
                     <i className="absolute bottom-0 left-0 h-px w-full origin-left scale-x-0 bg-[#B05C39] transition-transform duration-500 ease-out group-hover:scale-x-100 group-focus-visible:scale-x-100" />
