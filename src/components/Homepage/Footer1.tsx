@@ -12,24 +12,24 @@ const TREATMENTS = ["Hair", "Nails", "Facial & Skin", "Massage", "Makeup"];
 
 export default function Footer1() {
   return (
-    <footer className="bg-[#3A2029] font-body text-[#EFE3D7]">
+    <footer className="border-t border-[#D8A441]/20 bg-[#22301F] font-body text-[#F3ECE0]">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-12 lg:py-20">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           {/* ---- brand + description + socials ---- */}
           <div className="lg:pr-8">
             <div className="flex items-center gap-3">
-              <span className="grid h-11 w-11 place-items-center rounded-full bg-white/10">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E3B274" strokeWidth="1.6">
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-[#EFE6D6]/10">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D8A441" strokeWidth="1.6">
                   <circle cx="12" cy="12" r="2.2" />
                   <path d="M12 3.2c2 2.6 2 5.4 0 6.4M12 20.8c-2-2.6-2-5.4 0-6.4M3.2 12c2.6-2 5.4-2 6.4 0M20.8 12c-2.6 2-5.4 2-6.4 0" />
                 </svg>
               </span>
               <span className="font-display text-[26px] leading-none">
-                Salon<span className="italic text-[#E3B274]">Book</span>
+                Salon<span className="italic text-[#D8A441]">Book</span>
               </span>
             </div>
 
-            <p className="mt-6 max-w-82.5 text-[15px] leading-loose text-white/70">
+            <p className="mt-6 max-w-82.5 text-[15px] leading-loose text-[#EFE6D6]/70">
               A neighbourhood studio where thoughtful craft meets unhurried care.
               Book hair, skin, nails and spa rituals with the barbers who make it personal.
             </p>
@@ -44,7 +44,7 @@ export default function Footer1() {
                   key={social.name}
                   href="#"
                   aria-label={social.name}
-                  className="grid h-11 w-11 place-items-center rounded-full border border-white/20 text-white/75 transition hover:border-[#E3B274] hover:bg-[#E3B274]/15 hover:text-[#E3B274]"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-[#EFE6D6]/20 text-[#EFE6D6]/75 transition hover:border-[#D8A441] hover:bg-[#D8A441]/15 hover:text-[#D8A441]"
                 >
                   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d={social.d} />
@@ -56,7 +56,7 @@ export default function Footer1() {
 
           {/* ---- explore ---- */}
           <div>
-            <h3 className="font-display text-[13px] uppercase tracking-[0.32em] text-[#E3B274]">
+            <h3 className="font-display text-[13px] uppercase tracking-[0.32em] text-[#D8A441]">
               Explore
             </h3>
             <ul className="mt-7 space-y-4">
@@ -64,7 +64,7 @@ export default function Footer1() {
                 <li key={item.label}>
                   <Link
                     href={item.href}
-                    className="text-[15px] text-white/75 transition hover:text-[#E3B274]"
+                    className="text-[15px] text-[#EFE6D6]/75 transition hover:text-[#D8A441]"
                   >
                     {item.label}
                   </Link>
@@ -75,7 +75,7 @@ export default function Footer1() {
 
           {/* ---- treatments ---- */}
           <div>
-            <h3 className="font-display text-[13px] uppercase tracking-[0.32em] text-[#E3B274]">
+            <h3 className="font-display text-[13px] uppercase tracking-[0.32em] text-[#D8A441]">
               Treatments
             </h3>
             <ul className="mt-7 space-y-4">
@@ -83,7 +83,7 @@ export default function Footer1() {
                 <li key={item}>
                   <Link
                     href={`/services?category=${item.toLowerCase().replace(/[^a-z]+/g, "-")}`}
-                    className="text-[15px] text-white/75 transition hover:text-[#E3B274]"
+                    className="text-[15px] text-[#EFE6D6]/75 transition hover:text-[#D8A441]"
                   >
                     {item}
                   </Link>
@@ -94,46 +94,46 @@ export default function Footer1() {
 
           {/* ---- visit us ---- */}
           <div>
-            <h3 className="font-display text-[13px] uppercase tracking-[0.32em] text-[#E3B274]">
+            <h3 className="font-display text-[13px] uppercase tracking-[0.32em] text-[#D8A441]">
               Visit us
             </h3>
 
-            <ul className="mt-7 space-y-5 text-[15px] leading-[1.75] text-white/75">
+            <ul className="mt-7 space-y-5 text-[15px] leading-[1.75] text-[#EFE6D6]/75">
               <li className="flex gap-3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E3B274" strokeWidth="1.5" className="mt-1 shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D8A441" strokeWidth="1.5" className="mt-1 shrink-0">
                   <path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z" />
                   <circle cx="12" cy="10" r="2.6" />
                 </svg>
                 <span>128 Madison Avenue, Suite 4,<br />New York, NY 10016</span>
               </li>
               <li className="flex gap-3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E3B274" strokeWidth="1.5" className="mt-1 shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D8A441" strokeWidth="1.5" className="mt-1 shrink-0">
                   <path d="M22 16.9v2a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 3.2 2 2 0 0 1 4 1h2a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L7.1 8.9a16 16 0 0 0 6 6l1.3-1.1a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" />
                 </svg>
-                <a href="tel:+12125550198" className="transition hover:text-[#E3B274]">
+                <a href="tel:+12125550198" className="transition hover:text-[#D8A441]">
                   +1 (212) 555-0198
                 </a>
               </li>
               <li className="flex gap-3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E3B274" strokeWidth="1.5" className="mt-1 shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D8A441" strokeWidth="1.5" className="mt-1 shrink-0">
                   <rect x="3" y="5" width="18" height="14" rx="2" />
                   <path d="M3 7l9 6 9-6" />
                 </svg>
-                <a href="mailto:hello@salonbook.com" className="transition hover:text-[#E3B274]">
+                <a href="mailto:hello@salonbook.com" className="transition hover:text-[#D8A441]">
                   hello@salonbook.com
                 </a>
               </li>
             </ul>
 
-            <div className="mt-7 space-y-2.5 border-t border-white/10 pt-6 text-[14px]">
+            <div className="mt-7 space-y-2.5 border-t border-[#EFE6D6]/10 pt-6 text-[14px]">
               {[
                 ["Monday — Friday", "9:00 AM — 8:00 PM"],
                 ["Saturday", "9:00 AM — 7:00 PM"],
                 ["Sunday", "10:00 AM — 5:00 PM"],
               ].map(([day, time]) => (
-                <div key={day} className="flex justify-between gap-4 text-white/70">
+                <div key={day} className="flex justify-between gap-4 text-[#EFE6D6]/70">
                   <span>{day}</span>
-                  <span className="text-white/90">{time}</span>
+                  <span className="text-[#EFE6D6]/90">{time}</span>
                 </div>
               ))}
             </div>
@@ -142,10 +142,10 @@ export default function Footer1() {
       </div>
 
       {/* bottom bar */}
-      <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-[13px] text-white/55 sm:flex-row lg:px-12">
+      <div className="border-t border-[#EFE6D6]/10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-[13px] text-[#EFE6D6]/55 sm:flex-row lg:px-12">
           <p>© 2026 SalonBook. All rights reserved.</p>
-          <p className="font-display italic text-white/70">Designed for a calmer kind of beauty.</p>
+          <p className="font-display italic text-[#EFE6D6]/70">Designed for a calmer kind of beauty.</p>
         </div>
       </div>
     </footer>

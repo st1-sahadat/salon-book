@@ -29,7 +29,7 @@ export default function Navbar() {
   const profileRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
 
-  console.log(isPending, userData, error);
+  // console.log(isPending, userData, error);
 
   // check immediately when page loads
   useEffect(() => {

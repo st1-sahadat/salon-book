@@ -41,7 +41,7 @@ const TRUST = [
 
 export default function Banner() {
   return (
-    <section className="relative overflow-hidden bg-[#F6F1E8] font-body">
+    <section className="relative container mx-auto overflow-hidden bg-[#F6F1E8] font-body">
       {/* soft background glow */}
       <div
         aria-hidden="true"
