@@ -1,5 +1,5 @@
 import { LucideIcon } from "lucide-react";
-import type { TBranch } from "@/lib/branches";
+export type TBranch = string;
 
 export type TUserRole = "admin" | "user" ;
 

@@ -34,7 +34,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
       <SidebarProvider 
       // defaultOpen={defaultOpen}
       >
-        <DashboardSidebar  />
+        <DashboardSidebar user={null} />
         <SidebarInset>
           <DashboardHeader />
           <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
