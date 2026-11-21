@@ -325,7 +325,7 @@ export default function Categories() {
                       </li>
                     ))}
                   </ul>
-
+                  
 
                   <span className="relative mt-4.25 inline-block pb-1.25 font-mono text-[10px] uppercase tracking-[0.22em]">
                     Explore
