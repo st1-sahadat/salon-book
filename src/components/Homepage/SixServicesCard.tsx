@@ -10,7 +10,7 @@ const ServicesCard = async () => {
     const sixData = await res.json();
 
     return (
-        <section className="container mx-auto mt-5">
+        <section className="container mx-auto mb-3">
             <div className="flex mb-2 flex-col gap-5 rounded-sm bg-[#f8f5f2] px-6 py-7 sm:flex-row sm:items-end sm:justify-between sm:px-8">
                 <div className="max-w-2xl">
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#9b7567]">
