@@ -44,25 +44,25 @@ import { authClient } from "@/lib/auth-client";
 import { TDashboardSidebarItem, TUser, TUserRole } from "@/types";
 
 const roleBasedSidebarItems = {
-  user: [
+  customer: [
     {
       title: "Overview",
-      href: "/dashboard/user/overview",
+      href: "/dashboard/customer/overview",
       icon: LayoutDashboard,
     },
     {
       title: "My Appointments",
-      href: "/dashboard/user/appointments",
+      href: "/dashboard/customer/appointments",
       icon: CalendarCheck,
     },
     {
       title: "Browse services",
-      href: "/dashboard/user/service",
+      href: "/dashboard/customer/service",
       icon: WrenchOff,
     },
     {
       title: "My Profile",
-      href: "/dashboard/user/profile",
+      href: "/dashboard/customer/profile",
       icon: UserRound,
     },
   ],
@@ -110,7 +110,7 @@ const DashboardSidebar = ({ user }: { user: TUser | null }) => {
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
 
-  const role = user?.role || "user"; // Default role
+  const role = user?.role || "customer"; // Default role
   const sidebarItems = roleBasedSidebarItems[role as TUserRole] || [];
 
   // console.log(sidebarItems, "sidebarItems");

@@ -1,7 +1,7 @@
 import { LucideIcon } from "lucide-react";
 export type TBranch = string;
 
-export type TUserRole = "admin" | "user" ;
+export type TUserRole = "admin" | "customer" ;
 
 // A service as returned by the Express API (GET /services).
 export type TService = {
