@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { toast } from "../ui/toast";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/auth-client";
@@ -11,34 +11,131 @@ export default function SignUpForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConformPassword, setShowConformPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [eror, setError] = useState<string | null>(null);
     const [passwordMismatch, setPasswordMismatch] = useState(false);
+    const [imageMode, setImageMode] = useState<"upload" | "url">("upload");
     const [profileImage, setProfileImage] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [filePreview, setFilePreview] = useState<string | null>(null);
+    const [imageUrl, setImageUrl] = useState("");
+    const objectUrlRef = useRef<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
         return () => {
-            if (imagePreview) URL.revokeObjectURL(imagePreview);
+            if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
         };
-    }, [imagePreview]);
+    }, []);
 
-    // Image functionlity
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.currentTarget.files?.[0];
+    // Image functionality
+    const isValidImageUrl = (value: string) => {
+        try {
+            const parsed = new URL(value);
+            return parsed.protocol === "http:" || parsed.protocol === "https:";
+        } catch {
+            return false;
+        }
+    };
+
+    const imageUrlIsInvalid =
+        imageMode === "url" && imageUrl.trim().length > 0 && !isValidImageUrl(imageUrl.trim());
+    const imagePreview =
+        imageMode === "upload"
+            ? filePreview
+            : imageUrl.trim() && isValidImageUrl(imageUrl.trim())
+                ? imageUrl.trim()
+                : null;
+
+    const clearSelectedImage = () => {
+        if (objectUrlRef.current) {
+            URL.revokeObjectURL(objectUrlRef.current);
+            objectUrlRef.current = null;
+        }
+        setProfileImage(null);
+        setFilePreview(null);
+        const input = document.getElementById("profile-image") as HTMLInputElement | null;
+        if (input) input.value = "";
+    };
+
+    const handleRemoveImage = () => {
+        clearSelectedImage();
+        setImageUrl("");
+        setError(null);
+    };
+
+    // Downscale large photos so the avatar stays small and loads quickly.
+    const optimizeImage = async (file: File): Promise<File> => {
+        try {
+            const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+            const maxSide = 512;
+            const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+            const width = Math.round(bitmap.width * scale);
+            const height = Math.round(bitmap.height * scale);
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const context = canvas.getContext("2d");
+            if (!context) {
+                bitmap.close?.();
+                return file;
+            }
+            context.drawImage(bitmap, 0, 0, width, height);
+            bitmap.close?.();
+
+            if (scale === 1 && file.size <= 250 * 1024) return file;
+
+            const blob = await new Promise<Blob | null>((resolve) =>
+                canvas.toBlob(resolve, "image/jpeg", 0.86)
+            );
+            if (!blob) return file;
+            return new File([blob], "avatar.jpg", { type: "image/jpeg" });
+        } catch {
+            return file;
+        }
+    };
+
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.currentTarget;
+        const file = input.files?.[0];
         if (!file) return;
         if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
             toast.add({ title: "Choose a JPG, PNG or WEBP image." });
-            e.currentTarget.value = "";
+            input.value = "";
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
             toast.add({ title: "Image must be 5 MB or smaller." });
-            e.currentTarget.value = "";
+            input.value = "";
             return;
         }
-        setImagePreview(URL.createObjectURL(file));
-        setProfileImage(file);
+
+        const optimized = await optimizeImage(file);
+        clearSelectedImage();
+        objectUrlRef.current = URL.createObjectURL(optimized);
+        setFilePreview(objectUrlRef.current);
+        setProfileImage(optimized);
+        setImageMode("upload");
+        setError(null);
+        input.value = "";
+    };
+
+    const uploadProfileImage = async (file: File): Promise<string> => {
+        const uploadData = new FormData();
+        uploadData.append("file", file);
+
+        const response = await fetch("/api/upload/avatar", {
+            method: "POST",
+            body: uploadData,
+        });
+        const result = (await response.json().catch(() => null)) as
+            | { url?: string; error?: string }
+            | null;
+
+        if (!response.ok || !result?.url) {
+            throw new Error(result?.error ?? "Could not upload your photo. Please try again.");
+        }
+
+        return result.url;
     };
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -47,7 +144,6 @@ export default function SignUpForm() {
         const formData = new FormData(e.currentTarget);
         const fullName = String(formData.get("fullName") ?? "").trim();
         const email = String(formData.get("email") ?? "").trim();
-        const image = profileImage;
         const password = String(formData.get("password") ?? "");
         const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
@@ -55,17 +151,30 @@ export default function SignUpForm() {
             setPasswordMismatch(true);
             return;
         }
+        setPasswordMismatch(false);
 
-        const payload = { fullName, email, password, image, confirmPassword };
-        console.log("Sign up attempt:", payload);
+        if (imageMode === "url" && imageUrl.trim() && !isValidImageUrl(imageUrl.trim())) {
+            setError("Enter a valid image URL that starts with http:// or https://.");
+            return;
+        }
 
         setIsLoading(true);
         try {
+            let image: string | undefined;
+
+            if (imageMode === "upload" && profileImage) {
+                setIsUploading(true);
+                image = await uploadProfileImage(profileImage);
+            } else if (imageMode === "url" && imageUrl.trim()) {
+                image = imageUrl.trim();
+            }
+            setIsUploading(false);
+
             const options: SignUpEmailOptions = {
                 name: fullName,
                 email: email, // required, The email address of the user.
                 password: password, // required, The password of the user. It should be at least 8 characters long and max 128 by default.
-                image: imagePreview || undefined,
+                image,
                 callbackURL: "/", // An optional URL to redirect to after the user signs up.
             };
             const { data, error } = await signUp.email(options);
@@ -78,11 +187,15 @@ export default function SignUpForm() {
             });
             router.push("/")
             console.log({ data, error });
-            //   console.log("Sign up submitted:", { ...payload, password: "[hidden]" });
-        } catch {
-            setError("Something went wrong. Please try again.");
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Something went wrong. Please try again."
+            );
         } finally {
             setIsLoading(false);
+            setIsUploading(false);
         }
     };
 
@@ -135,7 +248,7 @@ export default function SignUpForm() {
                             {/* Avatar */}
                             <div className="relative shrink-0">
                                 <label
-                                    htmlFor="profile-image"
+                                    htmlFor={imageMode === "upload" ? "profile-image" : "profile-image-url"}
                                     className="group relative grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-full border border-dashed border-[#D8C7B6] bg-linear-to-b from-[#FCFAF7] to-[#F6F0E9] text-[#B5A79A] outline-none transition-colors hover:border-[#5B2233]/50 focus-within:ring-2 focus-within:ring-[#5B2233]/30 focus-within:ring-offset-2"
                                 >
                                     {imagePreview ? (
@@ -159,7 +272,6 @@ export default function SignUpForm() {
                                 </label>
                                 <input
                                     id="profile-image"
-                                    name="image"
                                     type="file"
                                     accept="image/jpeg,image/png,image/webp"
                                     className="sr-only"
@@ -195,32 +307,130 @@ export default function SignUpForm() {
                                 </div>
 
                                 <p className="mt-1 text-[11.5px] leading-relaxed text-[#8C7A6D]">
-                                    JPG, PNG or WEBP — up to 5&nbsp;MB. A square image works best.
+                                    Upload a photo from your device or paste a direct image link.
                                 </p>
 
-                                <div className="mt-4 flex flex-wrap items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => document.getElementById("profile-image")?.click()}
-                                        className="inline-flex items-center gap-2 rounded-full bg-[#5B2233] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white shadow-[0_1px_2px_rgba(43,33,28,0.2)] transition hover:bg-[#481A28] active:scale-[0.98]"
-                                    >
-                                        <svg
-                                            width="12"
-                                            height="12"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
+                                {/* Upload / URL mode toggle */}
+                                <div className="mt-4 inline-flex rounded-full border border-[#EFE6DC] bg-[#FBF7F2] p-0.5">
+                                    {([
+                                        { id: "upload", label: "Upload image" },
+                                        { id: "url", label: "Image URL" },
+                                    ] as const).map((mode) => (
+                                        <button
+                                            key={mode.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setImageMode(mode.id);
+                                                setError(null);
+                                            }}
+                                            aria-pressed={imageMode === mode.id}
+                                            className={`rounded-full px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition ${
+                                                imageMode === mode.id
+                                                    ? "bg-[#5B2233] text-white shadow-[0_1px_2px_rgba(43,33,28,0.2)]"
+                                                    : "text-[#8C7A6D] hover:text-[#5B2233]"
+                                            }`}
                                         >
-                                            <path d="M12 16V4" />
-                                            <path d="m6 10 6-6 6 6" />
-                                            <path d="M4 20h16" />
-                                        </svg>
-                                        {profileImage ? "Change image" : "Choose image"}
-                                    </button>
+                                            {mode.label}
+                                        </button>
+                                    ))}
                                 </div>
+
+                                {imageMode === "upload" ? (
+                                    <>
+                                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => document.getElementById("profile-image")?.click()}
+                                                className="inline-flex items-center gap-2 rounded-full bg-[#5B2233] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white shadow-[0_1px_2px_rgba(43,33,28,0.2)] transition hover:bg-[#481A28] active:scale-[0.98]"
+                                            >
+                                                <svg
+                                                    width="12"
+                                                    height="12"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <path d="M12 16V4" />
+                                                    <path d="m6 10 6-6 6 6" />
+                                                    <path d="M4 20h16" />
+                                                </svg>
+                                                {profileImage ? "Change image" : "Choose image"}
+                                            </button>
+                                            {profileImage && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleRemoveImage}
+                                                    className="inline-flex items-center gap-2 rounded-full border border-[#E8DED3] bg-white px-4 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[#8C7A6D] transition hover:border-[#D8C7B6] hover:text-[#5B2233]"
+                                                >
+                                                    Remove
+                                                </button>
+                                            )}
+                                        </div>
+                                        <p className="mt-2 text-[11px] leading-relaxed text-[#A2938A]">
+                                            JPG, PNG or WEBP — up to 5&nbsp;MB. A square image works best.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <div className="mt-3">
+                                        <div className="relative">
+                                            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#B5A79A]">
+                                                <svg
+                                                    width="15"
+                                                    height="15"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.7"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1" />
+                                                    <path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1" />
+                                                </svg>
+                                            </span>
+                                            <input
+                                                id="profile-image-url"
+                                                type="url"
+                                                inputMode="url"
+                                                value={imageUrl}
+                                                onChange={(e) => {
+                                                    setImageUrl(e.currentTarget.value);
+                                                    setError(null);
+                                                }}
+                                                aria-invalid={imageUrlIsInvalid}
+                                                aria-describedby="profile-image-url-help"
+                                                placeholder="https://example.com/photo.jpg"
+                                                className={`w-full rounded-xl border bg-[#FCFAF7] py-2.5 pl-10 pr-3 text-[13px] text-[#2B211C] outline-none transition placeholder:text-[#B5A79A] focus:bg-white focus:ring-4 ${
+                                                    imageUrlIsInvalid
+                                                        ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                                        : "border-[#E8DED3] focus:border-[#5B2233] focus:ring-[#5B2233]/10"
+                                                }`}
+                                            />
+                                        </div>
+                                        <p
+                                            id="profile-image-url-help"
+                                            className={`mt-1.5 text-[11px] leading-relaxed ${
+                                                imageUrlIsInvalid ? "text-red-600" : "text-[#A2938A]"
+                                            }`}
+                                        >
+                                            {imageUrlIsInvalid
+                                                ? "Use a full URL starting with http:// or https://."
+                                                : "Paste a direct link to a JPG, PNG or WEBP image."}
+                                        </p>
+                                        {imageUrl.trim() && (
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveImage}
+                                                className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#8C7A6D] underline underline-offset-2 transition hover:text-[#5B2233]"
+                                            >
+                                                Clear link
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -358,10 +568,14 @@ export default function SignUpForm() {
                     {/* submit */}
                     <button
                         type="submit"
-                        disabled={isLoading}
+                        disabled={isLoading || isUploading}
                         className="group mt-8 flex w-full items-center justify-center gap-3 rounded-xl bg-[#5B2233] py-4 text-[15px] font-semibold text-[#F6F0E9] transition hover:bg-[#712B41] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {isLoading ? "Creating account…" : "Create account"}
+                        {isUploading
+                            ? "Uploading photo…"
+                            : isLoading
+                                ? "Creating account…"
+                                : "Create account"}
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="transition-transform group-hover:translate-x-1">
                             <path d="M5 12h14M13 6l6 6-6 6" />
                         </svg>
