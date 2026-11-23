@@ -18,6 +18,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const { db } = await connectToDatabase();
+
+    // Check if user is blocked
+    const currentUserDoc = await db.collection("user").findOne({ email: session.user.email });
+    if (currentUserDoc?.isBlocked) {
+      return NextResponse.json(
+        { error: "Your account has been blocked. You cannot submit appointment requests." },
+        { status: 403 }
+      );
+    }
+
     // 2. Admin restriction rule
     if (session.user.role === "admin") {
       return NextResponse.json(
@@ -47,8 +58,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const { db } = await connectToDatabase();
 
     // 4. Verify service status from database or payload
     let targetService = null;
@@ -119,6 +128,16 @@ export async function GET(req: NextRequest) {
 
     const { db } = await connectToDatabase();
     const isUserAdmin = session.user.role === "admin";
+
+    if (!isUserAdmin) {
+      const currentUserDoc = await db.collection("user").findOne({ email: session.user.email });
+      if (currentUserDoc?.isBlocked) {
+        return NextResponse.json(
+          { error: "Your account has been blocked." },
+          { status: 403 }
+        );
+      }
+    }
 
     let appointments;
     if (isUserAdmin) {

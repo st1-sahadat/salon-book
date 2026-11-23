@@ -48,6 +48,7 @@ export type TUser = {
     email: string;
     image?: string | null;
     role?: string | null;
+    isBlocked?: boolean;
 };
 
 // A user as returned by the Express API (GET /users), for the admin page.
@@ -58,6 +59,8 @@ export type TAdminUser = {
     role: TUserRole;
     branch?: TBranch | null;
     image?: string | null;
+    isBlocked?: boolean;
+    createdAt?: string;
 };
 
 export type TDashboardSidebarItem = {

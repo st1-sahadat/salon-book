@@ -56,8 +56,11 @@ export default function CustomerAppointmentsClient({ appointments: initialAppoin
       );
       setSelectedAppointment(null);
       showToast("Appointment cancelled successfully.", "success");
-    } catch (err: any) {
-      showToast(err.message || "Failed to cancel appointment.", "error");
+    } catch (err: unknown) {
+      showToast(
+        err instanceof Error ? err.message : "Failed to cancel appointment.",
+        "error"
+      );
     } finally {
       setActionLoading(null);
     }
@@ -78,8 +81,11 @@ export default function CustomerAppointmentsClient({ appointments: initialAppoin
       );
       setSelectedAppointment(null);
       showToast("Payment recorded successfully.", "success");
-    } catch (err: any) {
-      showToast(err.message || "Failed to process payment.", "error");
+    } catch (err: unknown) {
+      showToast(
+        err instanceof Error ? err.message : "Failed to process payment.",
+        "error"
+      );
     } finally {
       setActionLoading(null);
     }

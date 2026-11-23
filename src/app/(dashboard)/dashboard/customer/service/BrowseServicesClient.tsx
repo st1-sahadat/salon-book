@@ -32,14 +32,20 @@ export default function BrowseServicesClient({ services }: Props) {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
+  // Only active services are visible on browse services and available for booking
+  const activeServices = services.filter((s) => {
+    if (!s.status) return true;
+    return s.status.toLowerCase() === "active";
+  });
+
   const categories = [
     "all",
     ...Array.from(
-      new Set(services.map((s) => s.category || "General").filter(Boolean))
+      new Set(activeServices.map((s) => s.category || "General").filter(Boolean))
     ),
   ];
 
-  const filtered = services.filter((s) => {
+  const filtered = activeServices.filter((s) => {
     const name = (s.serviceName || s.name || "").toLowerCase();
     const matchesSearch = name.includes(search.toLowerCase());
     const matchesCategory =
