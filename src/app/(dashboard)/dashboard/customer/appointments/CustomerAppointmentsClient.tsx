@@ -17,6 +17,7 @@ import {
   FileText,
 } from "lucide-react";
 import type { TAppointment } from "./page";
+import Link from "next/link";
 
 type Props = {
   appointments: TAppointment[];
@@ -324,6 +325,21 @@ export default function CustomerAppointmentsClient({ appointments: initialAppoin
                             </button>
                           )}
                           {canPay(apt) && (
+                            <Link
+                              href="/checkout"
+                              // onClick={() => handlePay(apt._id)}
+                              // disabled={actionLoading === apt._id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-forest hover:bg-forest-deep rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+                            >
+                              {actionLoading === apt._id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <CreditCard className="w-3 h-3" />
+                              )}
+                              Pay Now
+                            </Link>
+                          )}
+                          {/* {canPay(apt) && (
                             <button
                               onClick={() => handlePay(apt._id)}
                               disabled={actionLoading === apt._id}
@@ -336,7 +352,7 @@ export default function CustomerAppointmentsClient({ appointments: initialAppoin
                               )}
                               Pay Now
                             </button>
-                          )}
+                          )} */}
                         </div>
                       </td>
                     </tr>
