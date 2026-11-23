@@ -2,12 +2,33 @@ import DefaultCard from '../DefaultCard';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { ArrowUpRight } from 'lucide-react';
+import { connectToDatabase } from '@/lib/db';
 
 const ServicesCard = async () => {
-    const res = await fetch(`${process.env.SERVER_URL}/six-services`, {
-        cache: "no-store",
-    });
-    const sixData = await res.json();
+    let sixData = [];
+    try {
+        if (process.env.SERVER_URL) {
+            const res = await fetch(`${process.env.SERVER_URL}/six-services`, {
+                cache: "no-store",
+            }).catch(() => null);
+            if (res && res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) sixData = data;
+            }
+        }
+    } catch {
+        // Fallback to database below
+    }
+
+    if (!sixData || sixData.length === 0) {
+        try {
+            const { db } = await connectToDatabase();
+            const services = await db.collection("services").find().limit(6).toArray();
+            sixData = JSON.parse(JSON.stringify(services));
+        } catch (e) {
+            console.error("Failed to fetch six-services from db:", e);
+        }
+    }
 
     return (
         <section className="container mx-auto mb-3">

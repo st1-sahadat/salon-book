@@ -67,31 +67,6 @@ export default function CustomerAppointmentsClient({ appointments: initialAppoin
     }
   };
 
-  const handlePay = async (id: string) => {
-    setActionLoading(id);
-    try {
-      const res = await fetch(`/api/appointments/${id}/pay`, {
-        method: "PATCH",
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to process payment.");
-      setAppointments((prev) =>
-        prev.map((a) =>
-          a._id === id ? { ...a, paymentStatus: "Paid" } : a
-        )
-      );
-      setSelectedAppointment(null);
-      showToast("Payment recorded successfully.", "success");
-    } catch (err: unknown) {
-      showToast(
-        err instanceof Error ? err.message : "Failed to process payment.",
-        "error"
-      );
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
   const statusBadge = (status: string) => {
     const s = status.toLowerCase();
     if (s === "confirmed")

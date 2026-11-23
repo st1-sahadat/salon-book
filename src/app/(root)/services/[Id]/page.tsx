@@ -67,7 +67,7 @@ async function fetchCategoryServices(slug: string, categoryTitle: string): Promi
         return data as IServices[];
       }
     }
-  } catch (err) {
+  } catch {
     // If Express backend is offline, continue to direct DB query
   }
 
@@ -113,7 +113,7 @@ async function fetchService(id: string): Promise<IServices | null> {
         return data[0] as IServices;
       }
     }
-  } catch (err) {
+  } catch {
     // If Express backend is offline, continue to direct DB query
   }
 

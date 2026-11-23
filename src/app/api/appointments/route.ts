@@ -104,16 +104,17 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating appointment:", error);
+    const message = error instanceof Error ? error.message : "Failed to submit appointment request.";
     return NextResponse.json(
-      { error: error?.message || "Failed to submit appointment request." },
+      { error: message },
       { status: 500 }
     );
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -155,10 +156,11 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, appointments });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching appointments:", error);
+    const message = error instanceof Error ? error.message : "Failed to fetch appointments.";
     return NextResponse.json(
-      { error: error?.message || "Failed to fetch appointments." },
+      { error: message },
       { status: 500 }
     );
   }

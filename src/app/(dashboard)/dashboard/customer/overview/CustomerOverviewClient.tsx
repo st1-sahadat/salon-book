@@ -8,7 +8,6 @@ import {
   XCircle,
   ArrowRight,
   Sparkles,
-  CreditCard,
   Scissors,
 } from "lucide-react";
 import type { TAppointment } from "./page";
