@@ -1,11 +1,5 @@
-import React from 'react';
+import { redirect } from "next/navigation";
 
-const UserPage = () => {
-    return (
-        <div>
-            <h2>User Page</h2>
-        </div>
-    );
-};
-
-export default UserPage;
+export default function UserPage() {
+  redirect("/dashboard/customer/overview");
+}

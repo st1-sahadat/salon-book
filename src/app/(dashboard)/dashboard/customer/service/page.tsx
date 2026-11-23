@@ -1,11 +1,14 @@
-import React from 'react';
+import { allServices } from "@/lib/Data-Fatch/dataFatch";
+import BrowseServicesClient from "./BrowseServicesClient";
 
-const ServicePage = () => {
-    return (
-        <div>
-            <h2>Service Page</h2>
-        </div>
-    );
-};
+export default async function ServicePage() {
+  const allData = await allServices();
 
-export default ServicePage;
+  const services = Array.isArray(allData?.data)
+    ? allData.data
+    : Array.isArray(allData)
+    ? allData
+    : [];
+
+  return <BrowseServicesClient services={services} />;
+}
