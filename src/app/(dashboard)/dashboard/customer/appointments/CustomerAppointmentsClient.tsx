@@ -326,33 +326,13 @@ export default function CustomerAppointmentsClient({ appointments: initialAppoin
                           )}
                           {canPay(apt) && (
                             <Link
-                              href="/checkout"
-                              // onClick={() => handlePay(apt._id)}
-                              // disabled={actionLoading === apt._id}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-forest hover:bg-forest-deep rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+                              href={`/checkout?appointmentId=${apt._id}`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-forest hover:bg-forest-deep rounded-lg transition-colors cursor-pointer"
                             >
-                              {actionLoading === apt._id ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <CreditCard className="w-3 h-3" />
-                              )}
+                              <CreditCard className="w-3 h-3" />
                               Pay Now
                             </Link>
                           )}
-                          {/* {canPay(apt) && (
-                            <button
-                              onClick={() => handlePay(apt._id)}
-                              disabled={actionLoading === apt._id}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-forest hover:bg-forest-deep rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
-                            >
-                              {actionLoading === apt._id ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <CreditCard className="w-3 h-3" />
-                              )}
-                              Pay Now
-                            </button>
-                          )} */}
                         </div>
                       </td>
                     </tr>
@@ -442,18 +422,13 @@ export default function CustomerAppointmentsClient({ appointments: initialAppoin
                       </button>
                     )}
                     {canPay(apt) && (
-                      <button
-                        onClick={() => handlePay(apt._id)}
-                        disabled={actionLoading === apt._id}
-                        className="flex-1 inline-flex items-center justify-center gap-1 py-2 text-xs font-medium text-white bg-forest hover:bg-forest-deep rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+                      <Link
+                        href={`/checkout?appointmentId=${apt._id}`}
+                        className="flex-1 inline-flex items-center justify-center gap-1 py-2 text-xs font-medium text-white bg-forest hover:bg-forest-deep rounded-lg transition-colors cursor-pointer"
                       >
-                        {actionLoading === apt._id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <CreditCard className="w-3.5 h-3.5" />
-                        )}
+                        <CreditCard className="w-3.5 h-3.5" />
                         Pay Now
-                      </button>
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -617,18 +592,13 @@ export default function CustomerAppointmentsClient({ appointments: initialAppoin
                 </button>
               )}
               {canPay(selectedAppointment) && (
-                <button
-                  onClick={() => handlePay(selectedAppointment._id)}
-                  disabled={actionLoading === selectedAppointment._id}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-forest hover:bg-forest-deep rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+                <Link
+                  href={`/checkout?appointmentId=${selectedAppointment._id}`}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-forest hover:bg-forest-deep rounded-xl transition-colors cursor-pointer"
                 >
-                  {actionLoading === selectedAppointment._id ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <CreditCard className="w-4 h-4" />
-                  )}
+                  <CreditCard className="w-4 h-4" />
                   Pay Now
-                </button>
+                </Link>
               )}
               <button
                 onClick={() => setSelectedAppointment(null)}

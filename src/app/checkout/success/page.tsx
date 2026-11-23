@@ -1,179 +1,343 @@
-// Payment success — from the Figma "Public / Checkout — Payment
-// Successful": centered success card over a blue glow, with a verified
-// session box. Receipt details (amount, date, email) and the Stripe
-// transaction id (`payment_intent.id`) come from the Checkout Session.
+import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ShieldCheck,
+  Calendar,
+  Clock,
+  Sparkles,
+  Receipt,
+  User,
+  Scissors,
+} from "lucide-react";
+import { stripe } from "@/lib/stripe";
+import { connectToDatabase } from "@/lib/db";
+import { ObjectId } from "mongodb";
 
-import { redirect, notFound } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, ArrowRight, Check, ShieldCheck } from "lucide-react"
-import type Stripe from "stripe"
-import { stripe } from "@/lib/stripe"
-import { checkoutVerify } from "@/lib/payments"
-
-// Fixed en-US so SSR and client agree.
+// Formatter for date display
 const formatDate = (unixSeconds: number) =>
-    new Date(unixSeconds * 1000).toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    })
+  new Date(unixSeconds * 1000).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export default async function CheckoutSuccessPage({
-    searchParams,
+  searchParams,
 }: {
-    searchParams: Promise<{ session_id?: string }>
+  searchParams: Promise<{ session_id?: string }>;
 }) {
-    const { session_id } = await searchParams
+  const { session_id } = await searchParams;
 
-    if (!session_id) notFound()
+  if (!session_id) notFound();
 
-    const session = await stripe.checkout.sessions.retrieve(session_id, {
-        expand: ["line_items", "payment_intent"],
-    })
+  // Retrieve session from Stripe
+  const session = await stripe.checkout.sessions.retrieve(session_id, {
+    expand: ["line_items", "payment_intent"],
+  });
 
-    if (session.status === "open") {
-        return redirect("/")
-    }
+  if (session.status === "open") {
+    return redirect("/checkout");
+  }
 
-    if (session.status !== "complete" || session.payment_status !== "paid") {
-        return redirect("/checkout?canceled=1")
-    }
+  if (session.status !== "complete" || session.payment_status !== "paid") {
+    return redirect("/checkout/cancel");
+  }
 
-    // Hand the verified session to the backend (plan activation etc.).
-    const result = await checkoutVerify(session_id)
-    console.log({ result })
+  // Connect to DB and update appointment + store in transactions collection
+  const { db } = await connectToDatabase();
 
-    // Receipt details.
-    const paymentIntent =
-        typeof session.payment_intent === "object" ? session.payment_intent : null
-    const transactionId = paymentIntent?.id ?? session.id
-    const amount = (session.amount_total ?? 0).toLocaleString("en-US", {
-        style: "currency",
-        currency: session.currency || "usd",
-    })
-    const lineItems = session.line_items?.data ?? []
-    const planName = lineItems[0]?.description || "Hireloop Pro Plan"
+  const appointmentId =
+    session.metadata?.appointmentId || session.client_reference_id;
 
-    // Mono chip for long Stripe ids — truncated visually, selectable fully.
-    const idChip = (id: string) => (
-        <code
-            title={id}
-            className="max-w-[190px] truncate rounded bg-[#1f2937] px-2 py-1 font-mono text-[11px] text-[#9ca3af] select-all"
-        >
-            {id}
-        </code>
-    )
+  const paymentIntent =
+    typeof session.payment_intent === "object" ? session.payment_intent : null;
+  const transactionId =
+    paymentIntent?.id ??
+    (typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.id);
 
-    return (
-        <div className="relative min-h-screen bg-[#08080a]">
-            {/* Minimal header, consistent with the checkout flow */}
-            <header className="mx-auto flex h-24 w-full max-w-3xl items-center px-4">
-                <Link
-                    href="/"
-                    aria-label="Back"
-                    className="mr-6 text-[#a1a1aa] transition-colors hover:text-white"
-                >
-                    <ArrowLeft aria-hidden className="size-6" />
-                </Link>
-                <Link href="/" className="font-heading text-lg font-bold text-white">
-                    Hireloop
-                </Link>
-            </header>
+  let appointment = null;
 
-            {/* Decorative blue glow behind the card (Figma) */}
-            <div
-                aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 size-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1e3a8a] blur-[120px]"
-            />
+  if (appointmentId && ObjectId.isValid(appointmentId)) {
+    // 1. Update appointment payment status to Paid
+    await db.collection("appointments").updateOne(
+      { _id: new ObjectId(appointmentId) },
+      {
+        $set: {
+          paymentStatus: "Paid",
+          paidAt: new Date().toISOString(),
+          transactionId: transactionId,
+          stripeSessionId: session.id,
+        },
+      }
+    );
 
-            <main className="relative flex items-start justify-center px-4 pb-24">
-                <section className="w-full max-w-[512px] rounded-3xl border border-white/10 bg-[#141418] px-10 py-10 text-center shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),0_1px_2px_rgba(0,0,0,0.35),inset_0_1px_rgba(255,255,255,0.035)]">
-                    <div className="flex justify-center">
-                        <span
-                            aria-hidden
-                            className="flex size-16 items-center justify-center rounded-full bg-[#10b981] shadow-[0_0_0_4px_rgba(16,185,129,0.05)]"
-                        >
-                            <Check strokeWidth={3} className="size-8 text-white" />
-                        </span>
-                    </div>
+    appointment = await db
+      .collection("appointments")
+      .findOne({ _id: new ObjectId(appointmentId) });
+  }
 
-                    <p className="mt-7 inline-flex h-5 items-center rounded border border-[#3b82f6] bg-[#3b82f6]/15 px-[11px] text-[11px] font-medium tracking-[0.34em] text-[#60a5fa] uppercase">
-                        Upgrade successful
-                    </p>
+  // 2. Save transaction to 'transactions' collection (Image requirement)
+  const existingTx = await db.collection("transactions").findOne({
+    $or: [{ sessionId: session.id }, { transactionId: transactionId }],
+  });
 
-                    <h1 className="mt-4 text-[22px] font-semibold tracking-[-0.02em] text-[#EDEDEF]">
-                        Welcome to Hireloop Pro
-                    </h1>
+  if (!existingTx) {
+    const transactionDoc = {
+      transactionId: transactionId,
+      sessionId: session.id,
+      appointmentId:
+        appointmentId && ObjectId.isValid(appointmentId)
+          ? new ObjectId(appointmentId)
+          : null,
+      customerName:
+        appointment?.customerName ||
+        session.metadata?.customerName ||
+        session.customer_details?.name ||
+        "Customer",
+      customerEmail:
+        appointment?.customerEmail ||
+        session.metadata?.customerEmail ||
+        session.customer_details?.email ||
+        session.customer_email ||
+        "",
+      serviceName:
+        appointment?.serviceName ||
+        session.metadata?.serviceName ||
+        session.line_items?.data[0]?.description ||
+        "Salon Service",
+      serviceCategory:
+        appointment?.serviceCategory ||
+        session.metadata?.serviceCategory ||
+        "General",
+      servicePrice: appointment?.servicePrice
+        ? Number(appointment.servicePrice)
+        : session.metadata?.servicePrice
+        ? Number(session.metadata.servicePrice)
+        : (session.amount_total ?? 0) / 100,
+      amountPaid: (session.amount_total ?? 0) / 100,
+      currency: session.currency || "usd",
+      paymentStatus: "Paid",
+      paymentMethod: session.payment_method_types?.[0] || "card",
+      appointmentDate:
+        appointment?.appointmentDate ||
+        session.metadata?.appointmentDate ||
+        "",
+      timeSlot: appointment?.timeSlot || session.metadata?.timeSlot || "",
+      paidAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
 
-                    <p className="mx-auto mt-5 max-w-[366px] text-base leading-[26px] text-[#9ca3af]">
-                        Your payment of {amount} was received perfectly. All advanced
-                        premium features are unlocked on your account.
-                    </p>
+    await db.collection("transactions").insertOne(transactionDoc);
+  }
 
-                    {/* Verified session box with receipt details */}
-                    <div className="mt-10 rounded-xl border border-[#1f2937] bg-black px-4 py-3.5 text-left">
-                        <div className="flex items-center gap-2.5">
-                            <ShieldCheck aria-hidden className="size-5 shrink-0 text-[#6b7280]" />
-                            <span className="text-[13px] font-medium text-[#a0a0ab]">
-                                Session verified
-                            </span>
-                            <span className="ml-auto">{idChip(session_id)}</span>
-                        </div>
+  // Display details
+  const amountFormatted = (
+    (session.amount_total ?? 0) / 100
+  ).toLocaleString("en-US", {
+    style: "currency",
+    currency: session.currency || "usd",
+  });
 
-                        <dl className="mt-3 divide-y divide-[#1f2937] border-t border-[#1f2937] pt-1">
-                            <div className="flex items-center justify-between gap-4 py-2.5">
-                                <dt className="shrink-0 text-[13px] text-[#a0a0ab]">
-                                    Transaction ID
-                                </dt>
-                                <dd>
-                                    <code
-                                        title={transactionId}
-                                        className="block max-w-[240px] truncate rounded bg-[#1f2937] px-2 py-1 font-mono text-[11px] text-[#9ca3af] select-all"
-                                    >
-                                        {transactionId}
-                                    </code>
-                                </dd>
-                            </div>
+  const lineItems = session.line_items?.data ?? [];
+  const serviceName =
+    appointment?.serviceName ||
+    session.metadata?.serviceName ||
+    lineItems[0]?.description ||
+    "Salon Service";
 
-                            <div className="flex items-center justify-between gap-4 py-2.5">
-                                <dt className="text-[13px] text-[#a0a0ab]">Plan</dt>
-                                <dd className="truncate text-[13px] text-[#EDEDEF]">{planName}</dd>
-                            </div>
+  const customerEmail =
+    session.customer_details?.email ||
+    session.customer_email ||
+    appointment?.customerEmail ||
+    session.metadata?.customerEmail;
 
-                            <div className="flex items-center justify-between gap-4 py-2.5">
-                                <dt className="text-[13px] text-[#a0a0ab]">Amount paid</dt>
-                                <dd className="text-[13px] font-medium text-[#EDEDEF]">{amount}</dd>
-                            </div>
+  const customerName =
+    session.customer_details?.name ||
+    appointment?.customerName ||
+    session.metadata?.customerName ||
+    "Valued Customer";
 
-                            <div className="flex items-center justify-between gap-4 py-2.5">
-                                <dt className="text-[13px] text-[#a0a0ab]">Payment date</dt>
-                                <dd className="whitespace-nowrap text-[13px] text-[#EDEDEF]">
-                                    {formatDate(session.created)}
-                                </dd>
-                            </div>
+  return (
+    <div className="min-h-screen bg-cream text-ink">
+      {/* Header */}
+      <header className="border-b border-cream-deep/60 bg-white/70 backdrop-blur-md">
+        <div className="mx-auto flex h-20 w-full max-w-4xl items-center justify-between px-4 sm:px-6">
+          <Link
+            href="/dashboard/customer/appointments"
+            className="flex items-center gap-2 text-mute hover:text-ink text-sm font-medium transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>My Appointments</span>
+          </Link>
 
-                            {session.customer_email ? (
-                                <div className="flex items-center justify-between gap-4 py-2.5">
-                                    <dt className="text-[13px] text-[#a0a0ab]">Receipt email</dt>
-                                    <dd className="truncate text-[13px] text-[#EDEDEF]">
-                                        {session.customer_email}
-                                    </dd>
-                                </div>
-                            ) : null}
-                        </dl>
-                    </div>
+          <Link href="/" className="font-display text-2xl font-bold tracking-tight text-forest">
+            Salon<span className="text-brass">Book</span>
+          </Link>
 
-                    <Link
-                        href="/dashboard/seeker/applications"
-                        className="mt-8 flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-semibold text-black shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] transition-colors hover:bg-white/90"
-                    >
-                        Go to My Applications
-                        <ArrowRight aria-hidden className="size-4" />
-                    </Link>
-                </section>
-            </main>
+          <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Verified Paid</span>
+          </div>
         </div>
-    )
+      </header>
+
+      <main className="mx-auto max-w-2xl px-4 sm:px-6 py-12">
+        <div className="bg-white rounded-3xl border border-cream-deep/70 p-6 sm:p-10 shadow-xs text-center space-y-6">
+          {/* Animated Success Badge */}
+          <div className="mx-auto flex w-16 h-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 ring-8 ring-emerald-50">
+            <Check strokeWidth={3} className="w-8 h-8" />
+          </div>
+
+          <div>
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold tracking-widest text-emerald-700 uppercase bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              Payment Confirmed
+            </span>
+            <h1 className="font-display text-3xl sm:text-4xl font-normal text-ink mt-3 tracking-tight">
+              Thank You for Your Payment!
+            </h1>
+            <p className="text-sm text-mute mt-2 max-w-md mx-auto">
+              Your appointment booking has been confirmed and paid in full. A
+              transaction record has been stored in your account.
+            </p>
+          </div>
+
+          {/* Receipt Details Card */}
+          <div className="rounded-2xl border border-cream-deep/70 bg-cream/30 p-5 text-left space-y-4">
+            <div className="flex items-center justify-between border-b border-cream-deep/40 pb-3">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-forest">
+                <Receipt className="w-4 h-4 text-brass" />
+                <span>Payment Receipt</span>
+              </div>
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                Settled · Stripe
+              </span>
+            </div>
+
+            <dl className="divide-y divide-cream-deep/30 text-xs sm:text-sm">
+              <div className="flex items-center justify-between py-2.5 gap-2">
+                <dt className="text-mute flex items-center gap-1.5">
+                  <Scissors className="w-3.5 h-3.5 text-brass" />
+                  Service
+                </dt>
+                <dd className="font-semibold text-ink text-right truncate">
+                  {serviceName}
+                </dd>
+              </div>
+
+              <div className="flex items-center justify-between py-2.5 gap-2">
+                <dt className="text-mute flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-forest" />
+                  Customer
+                </dt>
+                <dd className="font-medium text-ink text-right">
+                  {customerName}
+                </dd>
+              </div>
+
+              {(appointment?.appointmentDate || session.metadata?.appointmentDate) && (
+                <div className="flex items-center justify-between py-2.5 gap-2">
+                  <dt className="text-mute flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-forest" />
+                    Appointment Date
+                  </dt>
+                  <dd className="font-medium text-ink text-right">
+                    {new Date(
+                      appointment?.appointmentDate || session.metadata?.appointmentDate || ""
+                    ).toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </dd>
+                </div>
+              )}
+
+              {(appointment?.timeSlot || session.metadata?.timeSlot) && (
+                <div className="flex items-center justify-between py-2.5 gap-2">
+                  <dt className="text-mute flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-forest" />
+                    Time Slot
+                  </dt>
+                  <dd className="font-medium text-ink text-right">
+                    {appointment?.timeSlot || session.metadata?.timeSlot}
+                  </dd>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between py-2.5 gap-2">
+                <dt className="text-mute">Amount Paid</dt>
+                <dd className="font-display text-lg font-bold text-forest text-right">
+                  {amountFormatted}
+                </dd>
+              </div>
+
+              <div className="flex items-center justify-between py-2.5 gap-2">
+                <dt className="text-mute">Payment Date</dt>
+                <dd className="text-ink text-right">
+                  {formatDate(session.created)}
+                </dd>
+              </div>
+
+              {customerEmail && (
+                <div className="flex items-center justify-between py-2.5 gap-2">
+                  <dt className="text-mute">Receipt Sent To</dt>
+                  <dd className="text-ink text-right truncate">
+                    {customerEmail}
+                  </dd>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between py-2.5 gap-2">
+                <dt className="text-mute shrink-0">Transaction ID</dt>
+                <dd className="text-right">
+                  <code
+                    title={transactionId}
+                    className="rounded bg-cream-soft px-2 py-0.5 font-mono text-xs text-mute font-medium select-all"
+                  >
+                    {transactionId}
+                  </code>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          {/* Helpful Salon Notice */}
+          <div className="bg-cream-soft/50 rounded-2xl p-4 text-xs text-mute text-left flex items-start gap-2.5 border border-cream-deep/40">
+            <Sparkles className="w-4 h-4 text-brass shrink-0 mt-0.5" />
+            <p>
+              Please arrive 10 minutes prior to your scheduled time. Show this
+              confirmation or your booking ID in the customer dashboard upon
+              arrival.
+            </p>
+          </div>
+
+          {/* Navigation Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <Link
+              href="/dashboard/customer/appointments"
+              className="flex-1 h-12 rounded-xl bg-forest hover:bg-forest-deep text-cream font-medium text-sm transition-colors flex items-center justify-center gap-2 shadow-xs"
+            >
+              <span>View My Appointments</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            <Link
+              href="/dashboard/customer/overview"
+              className="h-12 px-6 rounded-xl bg-cream-soft hover:bg-cream-deep text-ink font-medium text-sm transition-colors flex items-center justify-center"
+            >
+              Dashboard Overview
+            </Link>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }
