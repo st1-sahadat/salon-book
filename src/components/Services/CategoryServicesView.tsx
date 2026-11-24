@@ -36,6 +36,7 @@ export default function CategoryServicesView({
 }: CategoryServicesViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("default");
+  
 
   // 1. Filter by search term
   const filteredServices = useMemo(() => {

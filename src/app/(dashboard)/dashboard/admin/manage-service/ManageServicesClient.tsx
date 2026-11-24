@@ -692,7 +692,7 @@ export default function ManageServicesClient({ initialServices }: Props) {
                 />
 
                 {imagePreview ? (
-                  <div className="relative rounded-2xl overflow-hidden border border-cream-deep bg-cream-soft aspect-16/9 flex items-center justify-center">
+                  <div className="relative rounded-2xl overflow-hidden border border-cream-deep bg-cream-soft aspect-video flex items-center justify-center">
                     <Image
                       src={imagePreview}
                       alt="Service preview"

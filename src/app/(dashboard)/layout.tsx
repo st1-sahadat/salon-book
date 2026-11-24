@@ -1,4 +1,6 @@
 
+export const dynamic = 'force-dynamic';
+
 import { cookies, headers } from "next/headers";
 import DashboardHeader from "@/components/Dashboard/DashboardHeader";
 import DashboardSidebar from "@/components/Dashboard/DashboardSidebar";
@@ -9,10 +11,22 @@ import { connectToDatabase } from "@/lib/db";
 import { ShieldAlert } from "lucide-react";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
-  const [cookieStore, session] = await Promise.all([
-    cookies(),
-    auth.api.getSession({ headers: await headers() }),
-  ]);
+  let cookieStore: Awaited<ReturnType<typeof cookies>> | null = null;
+  let session = null;
+
+  try {
+    const [cStore, s] = await Promise.all([
+      cookies(),
+      auth.api.getSession({ headers: await headers() }).catch((err) => {
+        console.error("DashboardLayout auth.api.getSession error:", err);
+        return null;
+      }),
+    ]);
+    cookieStore = cStore;
+    session = s;
+  } catch (err) {
+    console.error("DashboardLayout error fetching session:", err);
+  }
 
   let isBlocked = false;
   if (session?.user?.email) {
@@ -26,7 +40,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   }
 
   // The shadcn sidebar stores its open/collapsed state in this cookie.
-  const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
+  const defaultOpen = cookieStore ? cookieStore.get("sidebar_state")?.value !== "false" : true;
 
   const user = session
     ? {
@@ -42,9 +56,9 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     <TooltipProvider>
       <SidebarProvider defaultOpen={defaultOpen}>
         <DashboardSidebar user={user} />
-        <SidebarInset>
+        <SidebarInset className="bg-[#FBF9F5] min-h-screen">
           <DashboardHeader />
-          <div className="flex flex-1 flex-col gap-4 p-4">
+          <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
             {isBlocked && session?.user?.role !== "admin" ? (
               <div className="min-h-[60vh] flex items-center justify-center p-6">
                 <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-rose-200 shadow-xl text-center">

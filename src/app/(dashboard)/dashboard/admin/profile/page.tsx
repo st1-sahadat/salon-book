@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import AdminProfileClient from "./AdminProfileClient";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminProfilePage() {
   const session = await auth.api.getSession({
     headers: await headers(),

@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import ManageServicesClient from "./ManageServicesClient";
 
+export const dynamic = 'force-dynamic';
+
 export type TAdminService = {
   _id: string;
   serviceName: string;

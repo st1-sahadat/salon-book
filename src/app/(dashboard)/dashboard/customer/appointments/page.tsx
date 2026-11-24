@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import CustomerAppointmentsClient from "./CustomerAppointmentsClient";
 
+export const dynamic = 'force-dynamic';
+
 export type TAppointment = {
   _id: string;
   serviceId: string;

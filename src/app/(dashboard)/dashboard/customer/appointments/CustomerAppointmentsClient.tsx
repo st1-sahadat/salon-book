@@ -252,7 +252,7 @@ export default function CustomerAppointmentsClient({ appointments: initialAppoin
                               </div>
                             )}
                           </div>
-                          <span className="font-semibold text-ink truncate max-w-[160px]">
+                          <span className="font-semibold text-ink truncate max-w-40">
                             {apt.serviceName}
                           </span>
                         </div>

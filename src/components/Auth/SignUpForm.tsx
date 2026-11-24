@@ -4,13 +4,14 @@ import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { toast } from "../ui/toast";
 import { useRouter } from "next/navigation";
-import { signUp } from "@/lib/auth-client";
+import { signIn, signUp } from "@/lib/auth-client";
 import { SignUpEmailOptions } from "../Type/type";
 
 export default function SignUpForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConformPassword, setShowConformPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [eror, setError] = useState<string | null>(null);
     const [passwordMismatch, setPasswordMismatch] = useState(false);
@@ -199,6 +200,35 @@ export default function SignUpForm() {
         }
     };
 
+    // Google sign up
+    const handleGoogleSignUp = async () => {
+        setIsGoogleLoading(true);
+        setError(null);
+        try {
+            const res = await signIn.social({
+                provider: "google",
+                callbackURL: "/dashboard",
+            });
+            if (res?.error) {
+                toast.add({
+                    title: "Sign-Up failed",
+                    description: res.error.message ?? "Sign-Up failed",
+                });
+                setError(res.error.message ?? "Sign-Up failed");
+            }
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Google sign-up failed. Please try again.";
+            setError(message);
+            toast.add({
+                title: "Sign-Up failed",
+                description: message,
+            });
+        } finally {
+            setIsGoogleLoading(false);
+        }
+    };
+
+
     return (
         <main className="flex min-h-screen bg-[#F6F0E9] font-body">
             {/* ============ LEFT : FORM ============ */}
@@ -222,7 +252,9 @@ export default function SignUpForm() {
                     {/* google */}
                     <button
                         type="button"
-                        className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#E8DED3] bg-white py-3.5 text-[15px] font-medium text-[#2B211C] transition hover:border-[#D8C7B6] hover:bg-[#FCFAF7]"
+                        onClick={handleGoogleSignUp}
+                        disabled={isLoading || isGoogleLoading}
+                        className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#E8DED3] bg-white py-3.5 text-[15px] font-medium text-[#2B211C] transition hover:border-[#D8C7B6] hover:bg-[#FCFAF7] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         <svg width="18" height="18" viewBox="0 0 48 48">
                             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -230,7 +262,7 @@ export default function SignUpForm() {
                             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
                             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
                         </svg>
-                        Continue with Google
+                        {isGoogleLoading ? "Connecting to Google..." : "Continue with Google"}
                     </button>
 
                     {/* divider */}
@@ -324,11 +356,10 @@ export default function SignUpForm() {
                                                 setError(null);
                                             }}
                                             aria-pressed={imageMode === mode.id}
-                                            className={`rounded-full px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition ${
-                                                imageMode === mode.id
+                                            className={`rounded-full px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition ${imageMode === mode.id
                                                     ? "bg-[#5B2233] text-white shadow-[0_1px_2px_rgba(43,33,28,0.2)]"
                                                     : "text-[#8C7A6D] hover:text-[#5B2233]"
-                                            }`}
+                                                }`}
                                         >
                                             {mode.label}
                                         </button>
@@ -403,18 +434,16 @@ export default function SignUpForm() {
                                                 aria-invalid={imageUrlIsInvalid}
                                                 aria-describedby="profile-image-url-help"
                                                 placeholder="https://example.com/photo.jpg"
-                                                className={`w-full rounded-xl border bg-[#FCFAF7] py-2.5 pl-10 pr-3 text-[13px] text-[#2B211C] outline-none transition placeholder:text-[#B5A79A] focus:bg-white focus:ring-4 ${
-                                                    imageUrlIsInvalid
+                                                className={`w-full rounded-xl border bg-[#FCFAF7] py-2.5 pl-10 pr-3 text-[13px] text-[#2B211C] outline-none transition placeholder:text-[#B5A79A] focus:bg-white focus:ring-4 ${imageUrlIsInvalid
                                                         ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
                                                         : "border-[#E8DED3] focus:border-[#5B2233] focus:ring-[#5B2233]/10"
-                                                }`}
+                                                    }`}
                                             />
                                         </div>
                                         <p
                                             id="profile-image-url-help"
-                                            className={`mt-1.5 text-[11px] leading-relaxed ${
-                                                imageUrlIsInvalid ? "text-red-600" : "text-[#A2938A]"
-                                            }`}
+                                            className={`mt-1.5 text-[11px] leading-relaxed ${imageUrlIsInvalid ? "text-red-600" : "text-[#A2938A]"
+                                                }`}
                                         >
                                             {imageUrlIsInvalid
                                                 ? "Use a full URL starting with http:// or https://."
@@ -616,7 +645,7 @@ export default function SignUpForm() {
                         <h2 className="font-display text-[clamp(30px,3vw,44px)] font-normal leading-[1.14] text-white">
                             A little more care,
                             <br />
-                            <em className="italic text-[#E3B274]">every visit.</em>
+                            <em className="italic text-brass-soft">every visit.</em>
                         </h2>
                         <p className="mt-5 max-w-90 text-[15px] leading-[1.9] text-white/70">
                             Your account remembers the details that matter, so every appointment starts where you left off.
@@ -629,7 +658,7 @@ export default function SignUpForm() {
                                 "Secure Stripe checkout for confirmed bookings",
                             ].map((item) => (
                                 <li key={item} className="flex items-start gap-3 text-[14px] leading-[1.7] text-white/85">
-                                    <span className="mt-1.75 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E3B274]" />
+                                    <span className="mt-1.75 h-1.5 w-1.5 shrink-0 rounded-full bg-brass-soft" />
                                     {item}
                                 </li>
                             ))}
@@ -640,7 +669,7 @@ export default function SignUpForm() {
                         <p className="font-display text-[17px] italic leading-[1.75] text-white/85">
                             &quot;The easiest booking experience I have had at a salon — everything is exactly where you expect it.&quot;
                         </p>
-                        <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.22em] text-[#E3B274]">
+                        <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.22em] text-brass-soft">
                             Sam W. — Skin client
                         </p>
                     </div>

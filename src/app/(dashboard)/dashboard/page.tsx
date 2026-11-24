@@ -2,10 +2,17 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  let session = null;
+  try {
+    session = await auth.api.getSession({
+      headers: await headers(),
+    });
+  } catch (err) {
+    console.error("DashboardPage session error:", err);
+  }
 
   if (!session?.user) {
     redirect("/sign-in");

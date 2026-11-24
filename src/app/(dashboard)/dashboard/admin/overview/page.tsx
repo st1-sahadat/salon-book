@@ -4,10 +4,17 @@ import { auth } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import AdminOverviewClient from "./AdminOverviewClient";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminOverviewPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  let session = null;
+  try {
+    session = await auth.api.getSession({
+      headers: await headers(),
+    });
+  } catch (err) {
+    console.error("AdminOverviewPage session error:", err);
+  }
 
   if (!session?.user) {
     redirect("/sign-in");

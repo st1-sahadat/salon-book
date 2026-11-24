@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import CustomerOverviewClient from "./CustomerOverviewClient";
 
+export const dynamic = 'force-dynamic';
+
 export type TAppointment = {
   _id: string;
   serviceId: string;
@@ -25,10 +27,37 @@ export type TAppointment = {
   paidAt?: string;
 };
 
+type RawAppointment = {
+  _id: { toString(): string };
+  serviceId?: string;
+  serviceName?: string;
+  serviceImage?: string;
+  serviceCategory?: string;
+  servicePrice?: number | string;
+  duration?: number;
+  appointmentDate?: string;
+  timeSlot?: string;
+  notes?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerId?: string;
+  customerImage?: string | null;
+  status?: string;
+  paymentStatus?: string;
+  createdAt?: string;
+  cancelledAt?: string;
+  paidAt?: string;
+};
+
 export default async function OverviewPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  let session = null;
+  try {
+    session = await auth.api.getSession({
+      headers: await headers(),
+    });
+  } catch (err) {
+    console.error("OverviewPage session error:", err);
+  }
 
   if (!session?.user) {
     return (
@@ -38,13 +67,17 @@ export default async function OverviewPage() {
     );
   }
 
-  const { db } = await connectToDatabase();
-
-  const rawAppointments = await db
-    .collection("appointments")
-    .find({ customerEmail: session.user.email })
-    .sort({ createdAt: -1 })
-    .toArray();
+  let rawAppointments: RawAppointment[] = [];
+  try {
+    const { db } = await connectToDatabase();
+    rawAppointments = await db
+      .collection("appointments")
+      .find({ customerEmail: session.user.email })
+      .sort({ createdAt: -1 })
+      .toArray();
+  } catch (err) {
+    console.error("OverviewPage database error:", err);
+  }
 
   const appointments: TAppointment[] = rawAppointments.map((a) => ({
     _id: a._id.toString(),

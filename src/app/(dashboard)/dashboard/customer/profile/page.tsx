@@ -2,6 +2,8 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import CustomerProfileClient from "./CustomerProfileClient";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProfilePage() {
   const session = await auth.api.getSession({
     headers: await headers(),

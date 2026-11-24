@@ -44,7 +44,7 @@ const ServicesCard = async () => {
                         From a quick refresh to a full afternoon of care, every service is delivered one-to-one by a senior artist.
                     </p>
                 </div>
-                <Link href="services">
+                <Link href="/services">
                 <Button
                     variant="outline"
                     className="h-9 shrink-0 rounded-full border-[#d9cec8] bg-transparent px-4 text-xs text-[#4b3b37] hover:bg-white"

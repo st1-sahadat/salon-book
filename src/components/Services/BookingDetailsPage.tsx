@@ -21,6 +21,7 @@ import {
 import { IServices } from "@/components/Type/type";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { getTokenFromClient } from "@/lib/getTokenFronClient";
 
 interface BookingDetailsPageProps {
   service: IServices;
@@ -113,14 +114,16 @@ export default function BookingDetailsPage({ service, initialUser }: BookingDeta
       setErrorMessage("Please select a convenient time slot.");
       return;
     }
-
     setIsSubmitting(true);
-
+    
+    const token = await getTokenFromClient();
+    
     try {
       const response = await fetch("/api/appointments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           serviceId: service._id,
@@ -136,13 +139,13 @@ export default function BookingDetailsPage({ service, initialUser }: BookingDeta
         }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to submit appointment request.");
+        throw new Error(result.error || "Failed to submit appointment request.");
       }
 
-      setBookingSuccess(data.appointment || {
+      setBookingSuccess(result.appointment || {
         serviceName: service.serviceName,
         appointmentDate,
         timeSlot: selectedTimeSlot,
@@ -214,7 +217,7 @@ export default function BookingDetailsPage({ service, initialUser }: BookingDeta
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
-                  href="/dashboard/user/appointments"
+                  href="/dashboard/customer/appointments"
                   className="flex-1 inline-flex justify-center items-center py-3 px-4 rounded-full bg-[#2D2622] hover:bg-[#433B36] text-white text-sm font-medium transition-colors cursor-pointer"
                 >
                   My Appointments

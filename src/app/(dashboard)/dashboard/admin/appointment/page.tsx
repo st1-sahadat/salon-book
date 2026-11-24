@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import AdminAppointmentsClient from "./AdminAppointmentsClient";
 
+export const dynamic = 'force-dynamic';
+
 export type TAdminAppointment = {
   _id: string;
   serviceId: string;

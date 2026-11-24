@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   CalendarCheck,
-  CarFront,
   ChevronsUpDown,
   House,
   LayoutDashboard,
@@ -12,9 +11,10 @@ import {
   LogOut,
   UserRound,
   Users,
-  WrenchOff,
+  Sparkles,
   ClipboardClock,
-  CreditCardPlus
+  CreditCard,
+  Scissors,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -56,9 +56,9 @@ const roleBasedSidebarItems = {
       icon: CalendarCheck,
     },
     {
-      title: "Browse services",
+      title: "Browse Services",
       href: "/dashboard/customer/service",
-      icon: WrenchOff,
+      icon: Sparkles,
     },
     {
       title: "My Profile",
@@ -73,12 +73,12 @@ const roleBasedSidebarItems = {
       icon: LayoutGrid,
     },
     {
-      title: "Manage services",
+      title: "Manage Services",
       href: "/dashboard/admin/manage-service",
-      icon: WrenchOff,
+      icon: Scissors,
     },
     {
-      title: "Appointment",
+      title: "Appointments",
       href: "/dashboard/admin/appointment",
       icon: ClipboardClock,
     },
@@ -90,7 +90,7 @@ const roleBasedSidebarItems = {
     {
       title: "Transactions",
       href: "/dashboard/admin/transactions",
-      icon: CreditCardPlus,
+      icon: CreditCard,
     },
     {
       title: "My Profile",
@@ -110,41 +110,46 @@ const DashboardSidebar = ({ user }: { user: TUser | null }) => {
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
 
-  const role = user?.role || "customer"; // Default role
+  const role = user?.role || "customer";
   const sidebarItems = roleBasedSidebarItems[role as TUserRole] || [];
 
-  // console.log(sidebarItems, "sidebarItems");
-
-  // On mobile the sidebar is a sheet; close it after navigating.
   const closeMobile = () => setOpenMobile(false);
 
-  const handleSignOut = () => {
-    authClient.signOut();
-    router.push("/signin");
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    router.push("/sign-in");
   };
 
+  const initials = (user?.name || "U")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   return (
-    <Sidebar collapsible="icon" className="bg-[#bcc2d2]">
-      <SidebarHeader>
+    <Sidebar collapsible="icon" className="bg-[#18281F] text-[#F6F1E8] border-r border-[#25392C]">
+      {/* Brand Header */}
+      <SidebarHeader className="border-b border-cream/10 pb-3.5 pt-4">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              tooltip="Salon Book"
-              render={
-                <Link
-                  href={`/`}
-                  onClick={closeMobile}
-                />
-              }
+              tooltip="SalonBook Sanctuary"
+              render={<Link href="/" onClick={closeMobile} />}
+              className="hover:bg-white/6 rounded-xl transition-colors"
             >
-              <div className="grid aspect-square size-8 place-items-center rounded-lg bg-[#15295e] text-[#ffc107]">
-                <CarFront />
+              <div className="grid aspect-square size-9 place-items-center rounded-xl bg-brass text-brass-ink font-display font-bold shadow-md shadow-brass/20">
+                <Sparkles className="w-5 h-5 text-brass-ink" />
               </div>
               <div className="grid flex-1 text-left leading-tight">
-                <span className="truncate font-semibold">Salon Book</span>
-                <span className="truncate text-xs text-sidebar-foreground/70">
-                  dashboard
+                <span className="truncate font-display text-lg font-semibold text-cream tracking-tight">
+                  Salon<em className="text-brass italic font-medium">Book</em>
+                </span>
+                <span className="truncate font-mono text-[9px] uppercase tracking-[0.2em] text-cream-dim/70">
+                  {role === "admin" ? "Admin Console" : "Client Portal"}
                 </span>
               </div>
             </SidebarMenuButton>
@@ -152,24 +157,29 @@ const DashboardSidebar = ({ user }: { user: TUser | null }) => {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent>
+      {/* Navigation Items */}
+      <SidebarContent className="py-2">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
-
+            <SidebarMenu className="gap-1.5 px-1">
               {sidebarItems.map((item: TDashboardSidebarItem) => {
                 const { title, href, icon: Icon } = item;
+                const active = isActivePath(pathname, href);
 
                 return (
                   <SidebarMenuItem key={href}>
                     <SidebarMenuButton
                       tooltip={title}
-                      isActive={isActivePath(pathname, href)}
-                      className="data-[active=true]:bg-[#15295e] data-[active=true]:text-[#ffc107]"
+                      isActive={active}
+                      className={`rounded-xl px-3 py-2.5 font-medium transition-all duration-200 text-sm ${
+                        active
+                          ? "bg-brass text-brass-ink font-semibold shadow-sm shadow-brass/25"
+                          : "text-cream/80 hover:bg-white/8 hover:text-cream"
+                      }`}
                       render={<Link href={href} onClick={closeMobile} />}
                     >
-                      <Icon />
-                      <span>{title}</span>
+                      <Icon className={`w-4.5 h-4.5 shrink-0 ${active ? "text-brass-ink" : "text-brass"}`} />
+                      <span className="tracking-tight">{title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -179,8 +189,9 @@ const DashboardSidebar = ({ user }: { user: TUser | null }) => {
         </SidebarGroup>
       </SidebarContent>
 
+      {/* User Footer Profile */}
       {user && (
-        <SidebarFooter>
+        <SidebarFooter className="border-t border-cream/10 pt-3 pb-3">
           <SidebarMenu>
             <SidebarMenuItem>
               <DropdownMenu>
@@ -188,56 +199,61 @@ const DashboardSidebar = ({ user }: { user: TUser | null }) => {
                   render={
                     <SidebarMenuButton
                       size="lg"
-                      className="data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground"
+                      className="hover:bg-white/6 rounded-xl transition-colors data-popup-open:bg-white/10"
                     />
                   }
                 >
-                  <Avatar className="rounded-lg after:rounded-lg">
+                  <Avatar className="rounded-lg ring-1 ring-brass/40 size-8.5">
                     <AvatarImage
                       src={user.image ?? undefined}
                       alt={user.name}
-                      className="rounded-lg"
+                      className="rounded-lg object-cover"
                     />
-                    <AvatarFallback className="rounded-lg">
-                      {user.name}
+                    <AvatarFallback className="rounded-lg bg-brass font-display text-xs font-bold text-brass-ink">
+                      {initials}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs text-sidebar-foreground/70">
+                    <span className="truncate font-medium text-cream">{user.name}</span>
+                    <span className="truncate text-xs font-mono text-cream-dim/60">
                       {user.email}
                     </span>
                   </div>
-                  <ChevronsUpDown className="ml-auto" />
+                  <ChevronsUpDown className="ml-auto w-4 h-4 text-cream-dim/70" />
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
-                  className="min-w-56"
+                  className="min-w-60 bg-[#1A2C21] border border-cream/15 text-cream rounded-2xl p-1.5 shadow-2xl"
                   side={isMobile ? "bottom" : "right"}
                   align="end"
-                  sideOffset={4}
+                  sideOffset={8}
                 >
                   <DropdownMenuGroup>
-                    <DropdownMenuLabel className="truncate">
-                      Signed in as {user.role ? user.role : "user"}
+                    <DropdownMenuLabel className="truncate px-3 py-2 text-xs font-mono uppercase tracking-wider text-brass">
+                      Signed in as {user.role ? user.role : "Client"}
                     </DropdownMenuLabel>
                     <DropdownMenuItem
                       render={<Link href="/" onClick={closeMobile} />}
+                      className="cursor-pointer rounded-xl px-3 py-2 text-sm text-cream/90 hover:bg-white/10 hover:text-cream transition-colors"
                     >
-                      <House />
-                      Back to site
+                      <House className="w-4 h-4 text-brass mr-2" />
+                      Back to Website
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      render={<Link href="/profile" onClick={closeMobile} />}
+                      render={<Link href="/dashboard/profile" onClick={closeMobile} />}
+                      className="cursor-pointer rounded-xl px-3 py-2 text-sm text-cream/90 hover:bg-white/10 hover:text-cream transition-colors"
                     >
-                      <UserRound />
-                      My profile
+                      <UserRound className="w-4 h-4 text-brass mr-2" />
+                      My Profile
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut />
-                    Sign out
+                  <DropdownMenuSeparator className="bg-cream/10 my-1" />
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="cursor-pointer rounded-xl px-3 py-2 text-sm text-rose-300 hover:bg-rose-500/15 hover:text-rose-200 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 text-rose-400 mr-2" />
+                    Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

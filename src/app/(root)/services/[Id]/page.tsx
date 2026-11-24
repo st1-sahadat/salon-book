@@ -147,6 +147,30 @@ const DetailsPage = async (props: PageProps) => {
   const resolvedParams = await props.params;
   const paramValue = resolvedParams?.Id || resolvedParams?.id || "";
   const normalizedParam = paramValue.toLowerCase().trim();
+  console.log(normalizedParam);
+  
+// TOKEN GENARATE
+const jwtToken = await auth.api.getToken({
+  headers: await headers(),
+});
+// console.log(jwtToken?.token);
+const token =  jwtToken?.token;
+
+const serverUrl = process.env.SERVER_URL;
+if (!serverUrl) {
+  throw new Error('SERVER_URL environment variable is not defined');
+}
+
+const res = await fetch(`${serverUrl}/services/${normalizedParam}`, {
+  headers: {
+    authorization: `Bearer ${token}`,
+  },
+});
+// if (!res.ok) notFound();
+// const data = 
+await res.json();
+// console.log(data);
+ 
 
   // ─────────────────────────────────────────────────────────────────────────────
   // CASE 1: The param is a Category Slug (from Homepage Categories click)

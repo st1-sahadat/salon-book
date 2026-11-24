@@ -108,7 +108,7 @@ export default function Navbar() {
   if (isPending) {
     return (
       <header
-        className="top-0 left-0 z-100 w-full border-b border-cream/15 bg-forest/[0.94] backdrop-blur-lg"
+        className="top-0 left-0 z-100 w-full border-b border-cream/15 bg-forest/94 backdrop-blur-lg"
         role="status"
         aria-label="Loading navigation"
         style={{ backdropFilter: "blur(16px) saturate(140%)" }}
@@ -118,12 +118,12 @@ export default function Navbar() {
           {/* 1. Logo Skeleton */}
           <div className="flex shrink-0 items-center gap-3">
             {/* Logo Circle */}
-            <div className="h-11 w-11 animate-pulse rounded-full border-[1.5px] border-brass/40 bg-brass/[0.08]" />
+            <div className="h-11 w-11 animate-pulse rounded-full border-[1.5px] border-brass/40 bg-brass/8" />
             <div>
               {/* "SalonBook" Text */}
-              <div className="h-6 w-32 animate-pulse rounded-sm bg-cream/[0.12]" />
+              <div className="h-6 w-32 animate-pulse rounded-sm bg-cream/12" />
               {/* "HAIR • SKIN • SPA" Text */}
-              <div className="mt-1.5 h-2 w-24 animate-pulse rounded-sm bg-cream/[0.08] sm:block" />
+              <div className="mt-1.5 h-2 w-24 animate-pulse rounded-sm bg-cream/8 sm:block" />
             </div>
           </div>
 
@@ -132,7 +132,7 @@ export default function Navbar() {
             {[44, 76, 82, 53].map((width, index) => (
               <div
                 key={index}
-                className="h-7 animate-pulse rounded-full bg-cream/[0.08]"
+                className="h-7 animate-pulse rounded-full bg-cream/8"
                 style={{ width: `${width}px` }}
               />
             ))}
@@ -141,9 +141,9 @@ export default function Navbar() {
           {/* 3. Auth Buttons Skeleton (Sign In / Sign Up) */}
           <div className="ml-auto flex items-center gap-5">
             {/* Sign In Text */}
-            <div className="hidden h-3.5 w-12 animate-pulse rounded-sm bg-cream/[0.10] sm:block" />
+            <div className="hidden h-3.5 w-12 animate-pulse rounded-sm bg-cream/10 sm:block" />
             {/* Sign Up Button */}
-            <div className="hidden h-11 w-28 animate-pulse rounded-sm bg-brass/[0.35] sm:block" />
+            <div className="hidden h-11 w-28 animate-pulse rounded-sm bg-brass/35 sm:block" />
           </div>
 
         </div>
@@ -195,7 +195,7 @@ export default function Navbar() {
           aria-label="Primary"
           onMouseLeave={hideIndicator}
         >
-          {LINKS.filter((link) => userData || (link.href !== "/why-salonbook" && link.href !== "/visit")).map((link) => (
+          {LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -326,6 +326,30 @@ export default function Navbar() {
           )}
 
 
+          {/* mobile menu toggle button */}
+          <button
+            type="button"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+            className="relative z-110 flex h-10 w-10 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-full border border-cream/20 bg-cream/5 text-cream transition-colors duration-300 hover:border-brass/55 hover:bg-brass/10 lg:hidden"
+          >
+            <span
+              className={`h-0.5 w-5 rounded-full bg-cream transition-all duration-300 ${
+                menuOpen ? "translate-y-2 rotate-45 bg-brass" : ""
+              }`}
+            />
+            <span
+              className={`h-0.5 w-5 rounded-full bg-cream transition-all duration-300 ${
+                menuOpen ? "opacity-0" : ""
+              }`}
+            />
+            <span
+              className={`h-0.5 w-5 rounded-full bg-cream transition-all duration-300 ${
+                menuOpen ? "-translate-y-2 -rotate-45 bg-brass" : ""
+              }`}
+            />
+          </button>
         </div>
       </div>
 
@@ -340,6 +364,7 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
+              onClick={() => setMenuOpen(false)}
               className={`flex items-baseline justify-between border-b border-cream/15 py-3.75 text-left font-display text-[clamp(30px,8vw,44px)] font-normal leading-tight tracking-[-0.02em] text-cream ${menuOpen ? "animate-navItemIn opacity-0" : "opacity-0"
                 }`}
               style={{ animationDelay: `${0.12 + link.n * 0.07}s` }}
@@ -355,6 +380,7 @@ export default function Navbar() {
             <>
               <Link
                 href="/sign-in"
+                onClick={() => setMenuOpen(false)}
                 className={`flex items-baseline justify-between border-b border-cream/15 py-3.75 font-display text-[clamp(30px,8vw,44px)] tracking-[-0.02em] text-cream ${menuOpen ? "animate-navItemIn opacity-0" : "opacity-0"}`}
                 style={{ animationDelay: "0.47s" }}
               >
@@ -363,6 +389,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/sign-up"
+                onClick={() => setMenuOpen(false)}
                 className={`flex items-baseline justify-between border-b border-cream/15 py-3.75 font-display text-[clamp(30px,8vw,44px)] tracking-[-0.02em] text-cream ${menuOpen ? "animate-navItemIn opacity-0" : "opacity-0"}`}
                 style={{ animationDelay: "0.54s" }}
               >
@@ -374,11 +401,21 @@ export default function Navbar() {
             <>
               <Link
                 href="/dashboard"
+                onClick={() => setMenuOpen(false)}
                 className={`flex items-baseline justify-between border-b border-cream/15 py-3.75 font-display text-[clamp(30px,8vw,44px)] tracking-[-0.02em] text-cream ${menuOpen ? "animate-navItemIn opacity-0" : "opacity-0"}`}
                 style={{ animationDelay: "0.47s" }}
               >
                 Dashboard
                 <small className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">05</small>
+              </Link>
+              <Link
+                href="/dashboard/profile"
+                onClick={() => setMenuOpen(false)}
+                className={`flex items-baseline justify-between border-b border-cream/15 py-3.75 font-display text-[clamp(30px,8vw,44px)] tracking-[-0.02em] text-cream ${menuOpen ? "animate-navItemIn opacity-0" : "opacity-0"}`}
+                style={{ animationDelay: "0.51s" }}
+              >
+                My Profile
+                <small className="font-mono text-[10px] uppercase tracking-[0.22em] text-brass">06</small>
               </Link>
               <button
                 type="button"

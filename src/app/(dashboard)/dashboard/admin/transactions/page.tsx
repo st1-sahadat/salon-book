@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import AdminTransactionsClient from "./AdminTransactionsClient";
 
+export const dynamic = 'force-dynamic';
+
 export type TTransaction = {
   _id: string;
   customerName: string;
