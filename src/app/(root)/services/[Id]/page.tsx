@@ -9,11 +9,13 @@ import { IServices } from "@/components/Type/type";
 import BookingDetailsPage from "@/components/Services/BookingDetailsPage";
 import CategoryServicesView from "@/components/Services/CategoryServicesView";
 import { ObjectId } from "mongodb";
+import { bookingAppointments } from "@/lib/Data-Fatch/dataFatch";
 
 interface PageProps {
   params: Promise<{ Id?: string; id?: string }>;
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
+
 
 // Map URL slug -> category metadata
 const CATEGORY_MAP: Record<string, { title: string; tagline: string; blurb: string }> = {
@@ -144,6 +146,8 @@ async function fetchService(id: string): Promise<IServices | null> {
 }
 
 const DetailsPage = async (props: PageProps) => {
+  
+  const appointments = await bookingAppointments();
   const resolvedParams = await props.params;
   const paramValue = resolvedParams?.Id || resolvedParams?.id || "";
   const normalizedParam = paramValue.toLowerCase().trim();
@@ -249,6 +253,7 @@ await res.json();
   // 4. Render Service Details & Booking View (Image 1 clone design with Image 2 requirements)
   return (
     <BookingDetailsPage
+      appointments = {appointments}
       service={service}
       initialUser={{
         id: user.id,

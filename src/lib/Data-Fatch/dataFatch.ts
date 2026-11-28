@@ -27,3 +27,21 @@ export const allServices = async () => {
         return [];
     }
 };
+
+export const bookingAppointments = async ()=>{
+     // 1. Try external server if configured and responsive
+    try {
+        if (process.env.SERVER_URL) {
+            const res = await fetch(`${process.env.SERVER_URL}/appointments`, {
+                cache: "no-store",
+            }).catch(() => null);
+            if (res && res.ok) {
+                const json = await res.json();
+                if (Array.isArray(json) && json.length > 0) return json;
+                if (Array.isArray(json?.data) && json.data.length > 0) return json.data;
+            }
+        }
+    } catch (err) {
+        console.error("Failed to fetch all appointments from server:", err);
+    }
+}

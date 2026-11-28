@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -32,6 +31,7 @@ interface BookingDetailsPageProps {
     image?: string | null;
     role?: string | null;
   } | null;
+  appointments : unknown;
 }
 
 const TIME_SLOTS = [
@@ -58,9 +58,12 @@ const TIME_SLOTS = [
   "07:30 PM",
 ];
 
-export default function BookingDetailsPage({ service, initialUser }: BookingDetailsPageProps) {
+export default function BookingDetailsPage({ service, initialUser, appointments }: BookingDetailsPageProps) {
+  console.log(appointments);
+  
   const router = useRouter();
   const { data: session } = authClient.useSession();
+  
   
   // Prefer live session, fallback to initial SSR user
   const currentUser = session?.user || initialUser;
@@ -102,6 +105,17 @@ export default function BookingDetailsPage({ service, initialUser }: BookingDeta
     // Rule 4: Only active services are available for booking
     if (!isActive) {
       setErrorMessage("Only active services are available for appointment booking.");
+      return;
+    }
+
+    // Rule 5: Check whether an appointment for this service/date/time already exists
+    const existingAppointment = Array.isArray(appointments) && appointments.some(
+      (app: { serviceName?: string; appointmentDate?: string; timeSlot?: string }) =>
+        app.serviceName === service.serviceName || app.appointmentDate === appointmentDate || app.timeSlot === selectedTimeSlot
+    );
+
+    if (existingAppointment) {
+      setErrorMessage(`An appointment for "${service.serviceName}" on ${appointmentDate} at ${selectedTimeSlot} already exists.`);
       return;
     }
 
